@@ -73,18 +73,24 @@ function App() {
           <label
             style={{
               display: "block",
-              fontSize: "12px",
+              fontSize: "16px",
               fontWeight: "bold",
               marginBottom: "5px",
             }}
           >
             {item.fieldName}
           </label>
-          <input
-            type="text"
-            value={item.currentValue}
+          <textarea
+            rows={7}
+            value={item.currentValue.replace(/\s+/g, " ").trim()}
             onChange={(e) => handleInputChange(i, e.target.value)}
-            style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
+            style={{
+              width: "100%",
+              padding: "8px",
+              boxSizing: "border-box",
+              resize: "vertical",
+              overflowY: "hidden",
+            }}
           />
         </div>
       )),
@@ -92,7 +98,13 @@ function App() {
   );
 
   return (
-    <div style={{ display: "flex", height: "100vh", fontFamily: "sans-serif" }}>
+    <div
+      style={{
+        display: "flex",
+        height: "100vh",
+        fontFamily: "sans-serif",
+      }}
+    >
       {/* Sidebar: Các ô nhập liệu */}
       <div
         style={{
@@ -125,26 +137,16 @@ function App() {
       <div
         style={{
           flex: 1,
-          padding: "40px",
           background: "#eee",
           display: "flex",
           justifyContent: "center",
+          overflowY: "scroll",
         }}
       >
         <div
-          style={{
-            width: "600px",
-            background: "white",
-            padding: "10px",
-            boxShadow: "0 0 10px rgba(0,0,0,0.1)",
-          }}
-        >
-          <h4 style={{ textAlign: "center", color: "#888" }}>
-            Xem trước Email
-          </h4>
-          <hr />
-          <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
-        </div>
+          style={{ width: "100%" }}
+          dangerouslySetInnerHTML={{ __html: previewHtml }}
+        />
       </div>
     </div>
   );
