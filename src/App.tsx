@@ -69,7 +69,7 @@ function App() {
   const fields = useMemo(
     () =>
       placeholders.map((item, i) => (
-        <div key={i} style={{ marginBottom: "15px" }}>
+        <div key={i} style={{ marginBottom: "15px", padding: "0px 20px" }}>
           <label
             style={{
               display: "block",
@@ -109,25 +109,27 @@ function App() {
       <div
         style={{
           width: "350px",
-          padding: "20px",
           borderRight: "1px solid #ddd",
           overflowY: "auto",
           background: "#f9f9f9",
         }}
       >
-        <h3>Cài đặt Template</h3>
+        <h3 style={{ padding: "20px" }}>Cài đặt Template</h3>
         {fields}
         <button
           onClick={copyToClipboard}
           style={{
             width: "100%",
-            padding: "12px",
+            padding: "20px",
             background: "#007bff",
             color: "white",
             border: "none",
             cursor: "pointer",
             borderRadius: "4px",
             fontWeight: "bold",
+            position: "sticky",
+            bottom: 0,
+            margin: "10px 0px 0px 0px",
           }}
         >
           Copy HTML kết quả
