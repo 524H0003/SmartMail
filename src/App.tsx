@@ -82,7 +82,7 @@ function App() {
           </label>
           <textarea
             rows={7}
-            value={item.currentValue.replace(/\s+/g, " ").trim()}
+            value={item.currentValue.replace(/\s+/g, " ")}
             onChange={(e) => handleInputChange(i, e.target.value)}
             style={{
               width: "100%",
