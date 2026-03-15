@@ -34,7 +34,7 @@ function App() {
 
   useEffect(() => {
     const exec = async () => {
-      const res = await fetch(`/templates/${pathname}.html`),
+      const res = await fetch(`./templates/${pathname}.html`),
         text = await res.text();
 
       setTemplateRaw(text);
