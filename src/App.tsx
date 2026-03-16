@@ -1,5 +1,20 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation } from "react-router";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "./components/ui/resizable";
+import { Field, FieldGroup, FieldLabel } from "./components/ui/field";
+import { Textarea } from "./components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./components/ui/card";
+import { Button } from "./components/ui/button";
 
 interface PlaceholderItem {
   fieldName: string;
@@ -68,33 +83,53 @@ function App() {
 
   const fields = useMemo(
     () =>
-      placeholders.map((item, i) => (
-        <div key={i} style={{ marginBottom: "15px", padding: "0px 20px" }}>
-          <label
-            style={{
-              display: "block",
-              fontSize: "16px",
-              fontWeight: "bold",
-              marginBottom: "5px",
-            }}
-          >
-            {item.fieldName}
-          </label>
-          <textarea
-            rows={7}
-            value={item.currentValue.replace(/\s+/g, " ")}
-            onChange={(e) => handleInputChange(i, e.target.value)}
-            style={{
-              width: "100%",
-              padding: "8px",
-              boxSizing: "border-box",
-              resize: "vertical",
-              overflowY: "hidden",
-            }}
-          />
-        </div>
-      )),
+      placeholders.map((item, i) => {
+        return (
+          <Field>
+            <FieldLabel htmlFor={"input-" + i}>{item.fieldName}</FieldLabel>
+            <Textarea
+              className="resize-y"
+              id={"input-" + i}
+              placeholder={item.defaultValue.replace(/\s+/g, " ")}
+              value={item.currentValue.replace(/\s+/g, " ")}
+              onChange={(e) => handleInputChange(i, e.target.value)}
+            />
+          </Field>
+        );
+      }),
     [handleInputChange, placeholders],
+  );
+
+  return (
+    <ResizablePanelGroup className="flex-col-reverse! lg:flex-row!">
+      <ResizablePanel minSize="40%">
+        <Card
+          className={`size-full rounded-none border-t border-r-0 border-t-black border-r-black lg:border-t-0 lg:border-r`}
+        >
+          <CardHeader>
+            <CardTitle>Chỉnh sửa nội dung</CardTitle>
+          </CardHeader>
+          <CardContent className="overflow-y-auto">
+            <FieldGroup>{fields}</FieldGroup>
+          </CardContent>
+          <CardFooter>
+            <Button
+              onClick={copyToClipboard}
+              className="w-full"
+              variant="outline"
+            >
+              Copy HTML
+            </Button>
+          </CardFooter>
+        </Card>
+      </ResizablePanel>
+      <ResizablePanel minSize="60%">
+        <div
+          style={{ width: "100%" }}
+          dangerouslySetInnerHTML={{ __html: previewHtml }}
+        />
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 
   return (
