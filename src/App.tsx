@@ -99,15 +99,6 @@ function App() {
       ];
 
       await navigator.clipboard.write(data);
-
-      // 3. Tạo URL Gmail (giữ tiêu đề, bỏ body vì mình sẽ Paste thủ công)
-      const subject = encodeURIComponent(
-        "Thông báo kết quả cuộc thi Người dẫn chương trình TDTU 2026",
-      );
-      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}`;
-
-      // 4. Mở Gmail
-      window.open(gmailUrl, "_blank");
     } catch (err) {
       console.error("Lỗi khi copy Rich Text: ", err);
       // Dự phòng nếu trình duyệt cũ không hỗ trợ ClipboardItem
