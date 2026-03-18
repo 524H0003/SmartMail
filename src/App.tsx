@@ -1,9 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation } from "react-router";
-import {
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "./components/ui/resizable";
+import { ResizablePanel, ResizablePanelGroup } from "./components/ui/resizable";
 import { Field, FieldGroup, FieldLabel } from "./components/ui/field";
 import { Textarea } from "./components/ui/textarea";
 import {
@@ -14,6 +11,7 @@ import {
   CardTitle,
 } from "./components/ui/card";
 import { Button } from "./components/ui/button";
+import { Copy } from "lucide-react";
 
 interface PlaceholderItem {
   fieldName: string;
@@ -111,13 +109,16 @@ function App() {
           <CardContent className="overflow-y-auto">
             <FieldGroup>{fields}</FieldGroup>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex justify-between gap-3">
             <Button
               onClick={copyToClipboard}
-              className="w-full"
+              className="flex-1"
               variant="outline"
             >
               Copy HTML
+            </Button>
+            <Button size="icon" aria-label="Submit">
+              <Copy />
             </Button>
           </CardFooter>
         </Card>
@@ -129,62 +130,6 @@ function App() {
         />
       </ResizablePanel>
     </ResizablePanelGroup>
-  );
-
-  return (
-    <div
-      style={{
-        display: "flex",
-        height: "100vh",
-        fontFamily: "sans-serif",
-      }}
-    >
-      {/* Sidebar: Các ô nhập liệu */}
-      <div
-        style={{
-          width: "350px",
-          borderRight: "1px solid #ddd",
-          overflowY: "auto",
-          background: "#f9f9f9",
-        }}
-      >
-        <h3 style={{ padding: "20px" }}>Cài đặt Template</h3>
-        {fields}
-        <button
-          onClick={copyToClipboard}
-          style={{
-            width: "100%",
-            padding: "20px",
-            background: "#007bff",
-            color: "white",
-            border: "none",
-            cursor: "pointer",
-            borderRadius: "4px",
-            fontWeight: "bold",
-            position: "sticky",
-            bottom: 0,
-            margin: "10px 0px 0px 0px",
-          }}
-        >
-          Copy HTML kết quả
-        </button>
-      </div>
-
-      <div
-        style={{
-          flex: 1,
-          background: "#eee",
-          display: "flex",
-          justifyContent: "center",
-          overflowY: "scroll",
-        }}
-      >
-        <div
-          style={{ width: "100%" }}
-          dangerouslySetInnerHTML={{ __html: previewHtml }}
-        />
-      </div>
-    </div>
   );
 }
 
