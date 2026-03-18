@@ -12,6 +12,7 @@ import {
 } from "./components/ui/card";
 import { Button } from "./components/ui/button";
 import { Copy } from "lucide-react";
+import { decodeData, encodeData } from "./lib/utils";
 
 interface PlaceholderItem {
   fieldName: string;
@@ -24,16 +25,26 @@ function App() {
   const [placeholders, setPlaceholders] = useState<PlaceholderItem[]>([]);
 
   function parsePlaceholders(text: string) {
-    const regex = /%={'([^']*)': '([^']*)'}/g,
-      output: PlaceholderItem[] = [];
+    const params = new URLSearchParams(window.location.search);
+    const encodedData = params.get("data");
+    const savedValues = encodedData ? decodeData(encodedData) : null;
+
+    const regex = /%={'([^']*)': '([^']*)'}/g;
+    const output: PlaceholderItem[] = [];
     let match: RegExpExecArray | null;
 
     while ((match = regex.exec(text)) !== null) {
+      const fieldName = match[1],
+        defaultValue = match[2];
+
       output.push({
-        fieldName: match[1],
+        fieldName,
         original: match[0],
-        defaultValue: match[2],
-        currentValue: match[2],
+        defaultValue,
+        currentValue:
+          savedValues && savedValues[fieldName]
+            ? savedValues[fieldName]
+            : defaultValue,
       });
     }
 
@@ -78,6 +89,29 @@ function App() {
     navigator.clipboard.writeText(previewHtml);
   };
 
+  const copyShareUrl = () => {
+    const dataToSave = placeholders.reduce(
+      (acc, item) => {
+        if (item.currentValue !== item.defaultValue) {
+          acc[item.fieldName] = item.currentValue;
+        }
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
+    const url = new URL(window.location.href);
+
+    if (Object.keys(dataToSave).length > 0) {
+      const encoded = encodeData(dataToSave);
+      url.searchParams.set("data", encoded);
+    } else {
+      url.searchParams.delete("data");
+    }
+
+    navigator.clipboard.writeText(url.toString());
+  };
+
   const fields = useMemo(
     () =>
       placeholders.map((item, i) => {
@@ -117,7 +151,7 @@ function App() {
             >
               Copy HTML
             </Button>
-            <Button size="icon" aria-label="Submit">
+            <Button size="icon" aria-label="Submit" onClick={copyShareUrl}>
               <Copy />
             </Button>
           </CardFooter>
