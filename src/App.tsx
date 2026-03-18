@@ -17,6 +17,7 @@ import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -243,6 +244,9 @@ function App() {
                   <AlertDialogTitle>
                     Đã sao chép nội dung vào clipboard
                   </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Vui lòng mở email và dán nội dung
+                  </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogAction variant="default" size="default">
