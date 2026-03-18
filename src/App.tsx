@@ -85,8 +85,39 @@ function App() {
     [placeholders],
   );
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(previewHtml);
+  const copyToClipboard = async () => {
+    try {
+      // 1. Tạo "Blob" chứa nội dung HTML để trình duyệt hiểu đây là định dạng Rich Text
+      const blob = new Blob([previewHtml], { type: "text/html" });
+
+      // 2. Sử dụng ClipboardItem để copy cả định dạng HTML và Plain Text (dự phòng)
+      const data = [
+        new ClipboardItem({
+          "text/html": blob,
+          "text/plain": new Blob([previewHtml], { type: "text/plain" }),
+        }),
+      ];
+
+      await navigator.clipboard.write(data);
+
+      // 3. Tạo URL Gmail (giữ tiêu đề, bỏ body vì mình sẽ Paste thủ công)
+      const subject = encodeURIComponent(
+        "Thông báo kết quả cuộc thi Người dẫn chương trình TDTU 2026",
+      );
+      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}`;
+
+      // 4. Mở Gmail
+      window.open(gmailUrl, "_blank");
+    } catch (err) {
+      console.error("Lỗi khi copy Rich Text: ", err);
+      // Dự phòng nếu trình duyệt cũ không hỗ trợ ClipboardItem
+      navigator.clipboard.writeText(previewHtml);
+      alert(
+        "Trình duyệt không hỗ trợ copy Rich Text, đã chuyển sang copy code HTML thuần.",
+      );
+    }
+
+    // navigator.clipboard.writeText(previewHtml);
   };
 
   const copyShareUrl = () => {
@@ -149,7 +180,7 @@ function App() {
               className="flex-1"
               variant="outline"
             >
-              Copy HTML
+              Gửi HTML
             </Button>
             <Button size="icon" aria-label="Submit" onClick={copyShareUrl}>
               <Copy />
