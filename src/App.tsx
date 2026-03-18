@@ -143,6 +143,58 @@ function App() {
     navigator.clipboard.writeText(url.toString());
   };
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>, index: number) => {
+      // Kiểm tra nếu nhấn phím Ctrl (hoặc Meta trên Mac)
+      if (e.ctrlKey || e.metaKey) {
+        let tag = "";
+        switch (e.key.toLowerCase()) {
+          case "b":
+            tag = "strong";
+            break;
+          case "i":
+            tag = "em";
+            break;
+          case "u":
+            tag = "u";
+            break;
+          default:
+            return; // Nếu không phải b, i, u thì thoát
+        }
+
+        // Ngăn chặn hành động mặc định của trình duyệt (ví dụ: Ctrl+B mở bookmark)
+        e.preventDefault();
+
+        const textarea = e.currentTarget;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const value = placeholders[index].currentValue;
+
+        // Lấy đoạn text đang bôi đen
+        const selectedText = value.substring(start, end);
+
+        // Tạo nội dung mới với thẻ bao quanh
+        const newValue =
+          value.substring(0, start) +
+          `<${tag}>${selectedText}</${tag}>` +
+          value.substring(end);
+
+        // Cập nhật state
+        handleInputChange(index, newValue);
+
+        // Đợi React render xong rồi đặt lại vị trí con trỏ (Optional)
+        setTimeout(() => {
+          textarea.focus();
+          textarea.setSelectionRange(
+            start + tag.length + 2,
+            end + tag.length + 2,
+          );
+        }, 0);
+      }
+    },
+    [handleInputChange, placeholders],
+  );
+
   const fields = useMemo(
     () =>
       placeholders.map((item, i) => {
@@ -155,11 +207,12 @@ function App() {
               placeholder={item.defaultValue.replace(/\s+/g, " ")}
               value={item.currentValue.replace(/\s+/g, " ")}
               onChange={(e) => handleInputChange(i, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, i)}
             />
           </Field>
         );
       }),
-    [handleInputChange, placeholders],
+    [handleInputChange, handleKeyDown, placeholders],
   );
 
   return (
