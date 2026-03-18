@@ -13,6 +13,15 @@ import {
 import { Button } from "./components/ui/button";
 import { Copy } from "lucide-react";
 import { decodeData, encodeData } from "./lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./components/ui/alert-dialog";
 
 interface PlaceholderItem {
   fieldName: string;
@@ -166,13 +175,29 @@ function App() {
             <FieldGroup>{fields}</FieldGroup>
           </CardContent>
           <CardFooter className="flex justify-between gap-3">
-            <Button
-              onClick={copyToClipboard}
-              className="flex-1"
-              variant="outline"
-            >
-              Gửi HTML
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  onClick={copyToClipboard}
+                  className="flex-1"
+                  variant="outline"
+                >
+                  Sao chép nội dung email
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Đã sao chép nội dung vào clipboard
+                  </AlertDialogTitle>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogAction variant="default" size="default">
+                    Tiếp tục
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button size="icon" aria-label="Submit" onClick={copyShareUrl}>
               <Copy />
             </Button>
