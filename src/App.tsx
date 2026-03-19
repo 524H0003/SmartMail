@@ -12,7 +12,7 @@ import {
 } from "./components/ui/card";
 import { Button } from "./components/ui/button";
 import { Copy } from "lucide-react";
-import { cn, decodeData, encodeData } from "./lib/utils";
+import { decodeData, encodeData } from "./lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
