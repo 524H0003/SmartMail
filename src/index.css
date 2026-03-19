@@ -5,6 +5,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@source inline("col-span-{1..12..1}");
+
 body {
   margin: 0;
 }

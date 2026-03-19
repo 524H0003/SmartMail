@@ -30,6 +30,7 @@ type TypeValue = "multi" | "single";
 interface PlaceholderItem {
   fieldName: string;
   type: TypeValue;
+  colSpan: number;
   original: string;
   defaultValue: string;
   currentValue: string;
@@ -43,7 +44,7 @@ function App() {
     const encodedData = params.get("data");
     const savedValues = encodedData ? decodeData(encodedData) : null;
 
-    const regex = /%={'([^']*)':(.)'([^']*)'}/g;
+    const regex = /%={'([^']*)':(.)'([^']*)'(.?)}/g;
 
     const resultMap = new Map<string, PlaceholderItem>();
     let match: RegExpExecArray | null;
@@ -51,7 +52,8 @@ function App() {
     while ((match = regex.exec(text)) !== null) {
       const fieldName = match[1],
         tag = match[2],
-        defaultValue = match[3];
+        defaultValue = match[3],
+        colSpan = Number(match[4]) || 12;
 
       if (!resultMap.has(fieldName)) {
         let type: TypeValue = "multi";
@@ -60,6 +62,7 @@ function App() {
         resultMap.set(fieldName, {
           fieldName,
           type,
+          colSpan,
           original: match[0],
           defaultValue,
           currentValue: savedValues?.[fieldName] ?? defaultValue,
@@ -219,7 +222,7 @@ function App() {
         };
 
         return (
-          <Field className={cn(item.type == "multi" && "col-span-2")}>
+          <Field className={`col-span-${item.colSpan}`} key={i}>
             <FieldLabel htmlFor={"input-" + i}>{item.fieldName}</FieldLabel>
             {item.type == "single" && <Input {...commonProps} />}
             {item.type == "multi" && (
@@ -241,7 +244,7 @@ function App() {
             <CardTitle>Chỉnh sửa nội dung</CardTitle>
           </CardHeader>
           <CardContent className="overflow-y-auto">
-            <FieldGroup className="grid gap-4 grid-cols-2">{fields}</FieldGroup>
+            <FieldGroup className="grid gap-4">{fields}</FieldGroup>
           </CardContent>
           <CardFooter className="flex justify-between gap-3">
             <AlertDialog>
