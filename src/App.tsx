@@ -44,7 +44,8 @@ function App() {
     const savedValues = encodedData ? decodeData(encodedData) : null;
 
     const regex = /%={'([^']*)':(.)'([^']*)'}/g;
-    const output: PlaceholderItem[] = [];
+
+    const resultMap = new Map<string, PlaceholderItem>();
     let match: RegExpExecArray | null;
 
     while ((match = regex.exec(text)) !== null) {
@@ -52,27 +53,21 @@ function App() {
         tag = match[2],
         defaultValue = match[3];
 
-      let type: TypeValue = "multi";
+      if (!resultMap.has(fieldName)) {
+        let type: TypeValue = "multi";
+        if (tag === "1") type = "single";
 
-      switch (tag) {
-        case "1":
-          type = "single";
-          break;
+        resultMap.set(fieldName, {
+          fieldName,
+          type,
+          original: match[0],
+          defaultValue,
+          currentValue: savedValues?.[fieldName] ?? defaultValue,
+        });
       }
-
-      output.push({
-        fieldName,
-        type,
-        original: match[0],
-        defaultValue,
-        currentValue:
-          savedValues && savedValues[fieldName]
-            ? savedValues[fieldName]
-            : defaultValue,
-      });
     }
 
-    setPlaceholders(output);
+    setPlaceholders(Array.from(resultMap.values()));
   }
 
   const [templateRaw, setTemplateRaw] = useState(""),
@@ -93,7 +88,7 @@ function App() {
   useEffect(() => {
     let updatedHtml = templateRaw;
     Object.values(placeholders).forEach((item) => {
-      updatedHtml = updatedHtml.replace(item.original, item.currentValue);
+      updatedHtml = updatedHtml.replaceAll(item.original, item.currentValue);
     });
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
