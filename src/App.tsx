@@ -12,7 +12,7 @@ import {
 } from "./components/ui/card";
 import { Button } from "./components/ui/button";
 import { Copy } from "lucide-react";
-import { decodeData, encodeData } from "./lib/utils";
+import { cn, decodeData, encodeData } from "./lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,9 +23,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./components/ui/alert-dialog";
+import { Input } from "./components/ui/input";
+
+type TypeValue = "multi" | "single";
 
 interface PlaceholderItem {
   fieldName: string;
+  type: TypeValue;
   original: string;
   defaultValue: string;
   currentValue: string;
@@ -39,16 +43,26 @@ function App() {
     const encodedData = params.get("data");
     const savedValues = encodedData ? decodeData(encodedData) : null;
 
-    const regex = /%={'([^']*)': '([^']*)'}/g;
+    const regex = /%={'([^']*)':(.)'([^']*)'}/g;
     const output: PlaceholderItem[] = [];
     let match: RegExpExecArray | null;
 
     while ((match = regex.exec(text)) !== null) {
       const fieldName = match[1],
-        defaultValue = match[2];
+        tag = match[2],
+        defaultValue = match[3];
+
+      let type: TypeValue = "multi";
+
+      switch (tag) {
+        case "1":
+          type = "single";
+          break;
+      }
 
       output.push({
         fieldName,
+        type,
         original: match[0],
         defaultValue,
         currentValue:
@@ -145,71 +159,77 @@ function App() {
   };
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>, index: number) => {
-      // Kiểm tra nếu nhấn phím Ctrl (hoặc Meta trên Mac)
-      if (e.ctrlKey || e.metaKey) {
-        let tag = "";
-        switch (e.key.toLowerCase()) {
-          case "b":
-            tag = "strong";
-            break;
-          case "i":
-            tag = "em";
-            break;
-          case "u":
-            tag = "u";
-            break;
-          default:
-            return; // Nếu không phải b, i, u thì thoát
-        }
+    (
+      e: React.KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>,
+      index: number,
+    ) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
 
-        // Ngăn chặn hành động mặc định của trình duyệt (ví dụ: Ctrl+B mở bookmark)
-        e.preventDefault();
+      const key = e.key.toLowerCase();
+      const tagMap: Record<string, string> = {
+        b: "strong",
+        i: "em",
+        u: "u",
+      };
 
-        const textarea = e.currentTarget;
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const value = placeholders[index].currentValue;
+      const tag = tagMap[key];
+      if (!tag) return; // Nếu không phải b, i, u thì bỏ qua
 
-        // Lấy đoạn text đang bôi đen
-        const selectedText = value.substring(start, end);
+      e.preventDefault();
 
-        // Tạo nội dung mới với thẻ bao quanh
-        const newValue =
-          value.substring(0, start) +
-          `<${tag}>${selectedText}</${tag}>` +
-          value.substring(end);
+      const target = e.currentTarget;
+      const { selectionStart: start, selectionEnd: end, value } = target;
 
-        // Cập nhật state
-        handleInputChange(index, newValue);
+      if (!start || !end) return;
 
-        // Đợi React render xong rồi đặt lại vị trí con trỏ (Optional)
-        setTimeout(() => {
-          textarea.focus();
-          textarea.setSelectionRange(
-            start + tag.length + 2,
-            end + tag.length + 2,
-          );
-        }, 0);
-      }
+      // Lấy đoạn text đang bôi đen
+      const selectedText = value.substring(start, end);
+
+      // Tạo nội dung mới
+      const openTag = `<${tag}>`;
+      const closeTag = `</${tag}>`;
+
+      const newValue =
+        value.substring(0, start) +
+        openTag +
+        selectedText +
+        closeTag +
+        value.substring(end);
+
+      // Cập nhật state thông qua hàm handleInputChange của bạn
+      handleInputChange(index, newValue);
+
+      // Đặt lại vị trí con trỏ sau khi React render xong
+      requestAnimationFrame(() => {
+        target.focus();
+        target.setSelectionRange(start + openTag.length, end + openTag.length);
+      });
     },
-    [handleInputChange, placeholders],
+    [handleInputChange], // Chỉ cần handleInputChange nếu nó là một stable function (từ dispatch hoặc useCallback)
   );
 
   const fields = useMemo(
     () =>
       placeholders.map((item, i) => {
+        type AcceptElements = HTMLInputElement | HTMLTextAreaElement;
+
+        const commonProps = {
+          id: `input-${i}`,
+          placeholder: item.defaultValue.replace(/\s+/g, " "),
+          value: item.currentValue.replace(/\s+/g, " "),
+          onChange: (e: React.ChangeEvent<AcceptElements>) =>
+            handleInputChange(i, e.target.value),
+          onKeyDown: (e: React.KeyboardEvent<AcceptElements>) =>
+            handleKeyDown(e, i),
+        };
+
         return (
-          <Field>
+          <Field className={cn(item.type == "multi" && "col-span-2")}>
             <FieldLabel htmlFor={"input-" + i}>{item.fieldName}</FieldLabel>
-            <Textarea
-              className="resize-y"
-              id={"input-" + i}
-              placeholder={item.defaultValue.replace(/\s+/g, " ")}
-              value={item.currentValue.replace(/\s+/g, " ")}
-              onChange={(e) => handleInputChange(i, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(e, i)}
-            />
+            {item.type == "single" && <Input {...commonProps} />}
+            {item.type == "multi" && (
+              <Textarea className="resize-y" {...commonProps} />
+            )}
           </Field>
         );
       }),
@@ -226,7 +246,7 @@ function App() {
             <CardTitle>Chỉnh sửa nội dung</CardTitle>
           </CardHeader>
           <CardContent className="overflow-y-auto">
-            <FieldGroup>{fields}</FieldGroup>
+            <FieldGroup className="grid gap-4 grid-cols-2">{fields}</FieldGroup>
           </CardContent>
           <CardFooter className="flex justify-between gap-3">
             <AlertDialog>
