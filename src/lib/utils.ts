@@ -85,3 +85,7 @@ export const decompressTemplate = (compressed: string): string => {
     return "";
   }
 };
+
+export function minifyHTML(html: string): string {
+  return html.replaceAll(/\s+/g, " ").replaceAll(/>\s+</g, "><").trim();
+}

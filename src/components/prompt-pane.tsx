@@ -19,7 +19,7 @@ import {
   SidebarMenuItem,
 } from "./ui/sidebar";
 import { Textarea } from "./ui/textarea";
-import { compressTemplate, encodeData } from "@/lib/utils";
+import { compressTemplate, encodeData, minifyHTML } from "@/lib/utils";
 
 const AI_PROMPT_TEMPLATE = (request: string) => `
 Role: Expert Email Developer specializing in Outlook-safe HTML.
@@ -59,10 +59,6 @@ export default function PromptPane() {
     } catch (err) {
       console.error("Failed to copy: ", err);
     }
-  };
-
-  const minifyHTML = (html: string): string => {
-    return html.replaceAll(/\s+/g, " ").replaceAll(/>\s+</g, "><").trim();
   };
 
   const sendPrompt = () => {

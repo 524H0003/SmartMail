@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   copyShareUrl,
   decodeData,
+  minifyHTML,
   type PlaceholderItem,
   type TypeValue,
 } from "@/lib/utils";
@@ -57,28 +58,38 @@ export default function EditPane({
     const resultMap = new Map<string, PlaceholderItem>();
     let match: RegExpExecArray | null;
 
-    while ((match = regex.exec(text)) !== null) {
-      const fieldName = match[1],
-        tag = match[2],
-        defaultValue = match[3],
-        colSpan = Number(match[4]) || 12;
+    setPlaceholders((prevPlaceholders) => {
+      const currentValuesMap = new Map(
+        prevPlaceholders.map((p) => [p.fieldName, p.currentValue]),
+      );
 
-      if (!resultMap.has(fieldName)) {
-        let type: TypeValue = "multi";
-        if (tag === "1") type = "single";
+      while ((match = regex.exec(text)) !== null) {
+        const fieldName = match[1];
+        const tag = match[2];
+        const defaultValue = match[3];
+        const colSpan = Number(match[4]) || 12;
 
-        resultMap.set(fieldName, {
-          fieldName,
-          type,
-          colSpan,
-          original: match[0],
-          defaultValue,
-          currentValue: savedValues?.[fieldName] ?? defaultValue,
-        });
+        if (!resultMap.has(fieldName)) {
+          let type: TypeValue = "multi";
+          if (tag === "1") type = "single";
+
+          const valueToKeep =
+            currentValuesMap.get(fieldName) ??
+            savedValues?.[fieldName] ??
+            defaultValue;
+
+          resultMap.set(fieldName, {
+            fieldName,
+            type,
+            colSpan,
+            original: match[0],
+            defaultValue,
+            currentValue: valueToKeep,
+          });
+        }
       }
-    }
-
-    setPlaceholders(Array.from(resultMap.values()));
+      return Array.from(resultMap.values());
+    });
   }, []);
 
   const copyToClipboard = async () => {
@@ -190,7 +201,7 @@ export default function EditPane({
   );
 
   useEffect(() => {
-    let updatedHtml = htmlCode;
+    let updatedHtml = minifyHTML(htmlCode);
     Object.values(placeholders).forEach((item) => {
       updatedHtml = updatedHtml.replaceAll(item.original, item.currentValue);
     });
@@ -217,11 +228,16 @@ export default function EditPane({
 
   useEffect(() => {
     const template = formatHTML(mailTemplate);
-
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    parsePlaceholders(template);
     setHtmlCode(template);
+
+    parsePlaceholders(mailTemplate);
   }, [mailTemplate, parsePlaceholders]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    parsePlaceholders(minifyHTML(htmlCode));
+  }, [htmlCode, parsePlaceholders]);
 
   return (
     <Sidebar>
