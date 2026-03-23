@@ -29,18 +29,22 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "./ui/sidebar";
+import { html as beautifyHtml } from "js-beautify";
 
 export interface EditPaneProps {
   onMailHtmlChange: (mailHtml: string) => void;
   mailTemplate: string;
+  editHtml: boolean;
 }
 
 export default function EditPane({
   onMailHtmlChange,
+  editHtml,
   mailTemplate,
 }: EditPaneProps) {
   const [mailHtml, setMailHtml] = useState(""),
     [placeholders, setPlaceholders] = useState<PlaceholderItem[]>([]),
+    [htmlCode, setHtmlCode] = useState(""),
     { toggleSidebar } = useSidebar();
 
   const parsePlaceholders = useCallback((text: string) => {
@@ -186,7 +190,7 @@ export default function EditPane({
   );
 
   useEffect(() => {
-    let updatedHtml = mailTemplate;
+    let updatedHtml = htmlCode;
     Object.values(placeholders).forEach((item) => {
       updatedHtml = updatedHtml.replaceAll(item.original, item.currentValue);
     });
@@ -195,13 +199,27 @@ export default function EditPane({
     setMailHtml(updatedHtml);
 
     onMailHtmlChange(updatedHtml);
-  }, [placeholders, mailTemplate, onMailHtmlChange]);
+  }, [placeholders, onMailHtmlChange, htmlCode]);
 
-  useEffect(
+  useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    () => parsePlaceholders(mailTemplate),
-    [mailTemplate, parsePlaceholders],
-  );
+    parsePlaceholders(mailTemplate);
+    setHtmlCode(mailTemplate);
+  }, [mailTemplate, parsePlaceholders]);
+
+  const formatHTML = (html: string): string => {
+    return beautifyHtml(html, {
+      indent_size: 2,
+      indent_char: " ",
+      max_preserve_newlines: 1,
+      preserve_newlines: true,
+      indent_scripts: "normal",
+      end_with_newline: false,
+      wrap_line_length: 0,
+      indent_inner_html: true,
+      indent_empty_lines: false,
+    });
+  };
 
   return (
     <Sidebar>
@@ -217,6 +235,17 @@ export default function EditPane({
       <CardContent className="overflow-y-auto">
         <FieldGroup className="grid gap-4">
           {fields}
+          {editHtml && (
+            <Field className={`col-span-12 justify-between min-w-0`}>
+              <FieldLabel htmlFor="editHtml">Mã html</FieldLabel>
+              <Textarea
+                wrap="off"
+                value={formatHTML(htmlCode)}
+                onChange={(e) => setHtmlCode(e.target.value)}
+                className="max-h-64"
+              />
+            </Field>
+          )}
         </FieldGroup>
       </CardContent>
       <SidebarFooter className="flex flex-row">

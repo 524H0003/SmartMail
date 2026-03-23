@@ -8,6 +8,7 @@ import { decodeData, decompressTemplate } from "@/lib/utils";
 
 export default function Layout() {
   const [isEdit, setIsEdit] = useState(true),
+    [editHtml, setEditHtml] = useState(false),
     [mailTemplate, setMailTemplate] = useState(""),
     [previewHtml, setPreviewHtml] = useState(""),
     { pathname, search } = useLocation();
@@ -21,6 +22,7 @@ export default function Layout() {
         const decodedTemplate = decodeData(encodedHtml);
         if (decodedTemplate) {
           setMailTemplate(decompressTemplate(decodedTemplate?.["template"]));
+          setEditHtml(true);
           return;
         }
       }
@@ -53,7 +55,8 @@ export default function Layout() {
       <Sidebar
         isEdit={isEdit}
         mailTemplate={mailTemplate}
-        setPreviewHtml={setPreviewHtml}
+        onMailHtmlChange={setPreviewHtml}
+        editHtml={editHtml}
       />
       <SidebarInset>
         <SidebarHeader />

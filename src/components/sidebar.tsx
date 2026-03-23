@@ -1,19 +1,19 @@
-import EditPane from "./edit-pane";
+import EditPane, { type EditPaneProps } from "./edit-pane";
 import PromptPane from "./prompt-pane";
 
 export default function Sidebar({
   isEdit,
   mailTemplate,
-  setPreviewHtml,
+  onMailHtmlChange,
+  editHtml
 }: {
   isEdit: boolean;
-  mailTemplate?: string;
-  setPreviewHtml: (e: string) => void;
-}) {
+} & EditPaneProps) {
   return isEdit ? (
     <EditPane
       mailTemplate={mailTemplate!}
-      onMailHtmlChange={(e) => setPreviewHtml(e)}
+      onMailHtmlChange={(e) => onMailHtmlChange(e)}
+      editHtml={editHtml}
     />
   ) : (
     <PromptPane />
