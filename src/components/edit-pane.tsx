@@ -8,15 +8,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./ui/alert-dialog";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
+import { CardContent } from "./ui/card";
 import { Button } from "./ui/button";
-import { Copy } from "lucide-react";
+import { Eye, Share } from "lucide-react";
 import { FieldGroup } from "./ui/field";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -28,6 +22,13 @@ import {
 import { Field, FieldLabel } from "./ui/field";
 import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
+import {
+  Sidebar,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenuButton,
+  useSidebar,
+} from "./ui/sidebar";
 
 export interface EditPaneProps {
   onMailHtmlChange: (mailHtml: string) => void;
@@ -39,11 +40,12 @@ export default function EditPane({
   mailTemplate,
 }: EditPaneProps) {
   const [mailHtml, setMailHtml] = useState(""),
-    [placeholders, setPlaceholders] = useState<PlaceholderItem[]>([]);
+    [placeholders, setPlaceholders] = useState<PlaceholderItem[]>([]),
+    { toggleSidebar } = useSidebar();
 
   const parsePlaceholders = useCallback((text: string) => {
     const params = new URLSearchParams(window.location.search);
-    const encodedData = params.get("ph");
+    const encodedData = params.get("ph") || params.get("data");
     const savedValues = encodedData ? decodeData(encodedData) : null;
 
     const regex = /%={'([^']*)':(.)'([^']*)'(.?)}/g;
@@ -202,16 +204,20 @@ export default function EditPane({
   );
 
   return (
-    <Card
-      className={`size-full rounded-none border-t border-r-0 border-t-black border-r-black lg:border-t-0 lg:border-r`}
-    >
-      <CardHeader>
-        <CardTitle>Chỉnh sửa nội dung</CardTitle>
-      </CardHeader>
+    <Sidebar>
+      <SidebarHeader className="flex items-center justify-between flex-row">
+        <h1 className="text-lg font-semibold">Chỉnh sửa nội dung</h1>
+        <SidebarMenuButton asChild>
+          <Button className="md:hidden w-fit" onClick={toggleSidebar}>
+            <Eye className="mr-2 size-4" />
+            Xem trước
+          </Button>
+        </SidebarMenuButton>
+      </SidebarHeader>
       <CardContent className="overflow-y-auto">
         <FieldGroup className="grid gap-4">{fields}</FieldGroup>
       </CardContent>
-      <CardFooter className="flex justify-between gap-3">
+      <SidebarFooter className="flex flex-row">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
@@ -243,9 +249,9 @@ export default function EditPane({
           aria-label="Submit"
           onClick={() => copyShareUrl({ placeholders })}
         >
-          <Copy />
+          <Share />
         </Button>
-      </CardFooter>
-    </Card>
+      </SidebarFooter>
+    </Sidebar>
   );
 }
