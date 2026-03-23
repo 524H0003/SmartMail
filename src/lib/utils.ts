@@ -1,6 +1,17 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+export type TypeValue = "multi" | "single";
+
+export interface PlaceholderItem {
+  fieldName: string;
+  type: TypeValue;
+  colSpan: number;
+  original: string;
+  defaultValue: string;
+  currentValue: string;
+}
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -28,4 +39,27 @@ export function decodeData(base64: string) {
   } catch {
     /* empty */
   }
+}
+
+export function copyShareUrl(placeholders: PlaceholderItem[]) {
+  const dataToSave = placeholders.reduce(
+    (acc, item) => {
+      if (item.currentValue !== item.defaultValue) {
+        acc[item.fieldName] = item.currentValue;
+      }
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+
+  const url = new URL(window.location.href);
+
+  if (Object.keys(dataToSave).length > 0) {
+    const encoded = encodeData(dataToSave);
+    url.searchParams.set("data", encoded);
+  } else {
+    url.searchParams.delete("data");
+  }
+
+  navigator.clipboard.writeText(url.toString());
 }
