@@ -19,24 +19,39 @@ import {
   SidebarMenuItem,
 } from "./ui/sidebar";
 import { Textarea } from "./ui/textarea";
+import { encodeData } from "@/lib/utils";
 
-const AI_PROMPT_TEMPLATE = (request: string) => `Role: Senior Email Developer.
-Task: Create a Table-based HTML email template (100% Cross device compatible).
+const AI_PROMPT_TEMPLATE = (request: string) => `
+Role: Expert Email Developer specializing in Outlook-safe HTML.
+Task: Generate a high-quality, table-based HTML email template based on the following request: "${request}"
 
-Strict Requirements:
-1. Inline CSS only. No <style> tags.
-2. Use my custom variable syntax: %={'FieldName':Type'DefaultValue'ColSpan}. 
-   - Type 1 for short/single-line inputs.
-   - No type number for long/multi-line inputs.
-   - ColSpan for number of column take out of 12
-3. Use 600px max-width, centered container with border-radius: 16px.
-4. Images: display:block; width:100%.
-5. Design: Modern, clean.
+Technical Architecture:
+1. Layout: Use 100% table-based layouts (nested tables). Avoid <div> for structural positioning to ensure 100% Cross-Device/Outlook compatibility.
+2. Styling: 
+   - Use strictly Inline CSS. 
+   - Container: 600px max-width, centered, border-radius: 16px (include Outlook VML fallback if possible, otherwise standard inline-style).
+   - Images: display:block; border:0; width:100%; height:auto.
+3. Custom Variable Syntax (Crucial): 
+   Every dynamic element must follow this EXACT format: %={FieldName|Type|DefaultValue|ColSpan}
+   - FieldName: Vietnamese with spaces (e.g., "Tiêu đề chính").
+   - Type: "1" for input, empty for textarea.
+   - DefaultValue: The initial content, hex color, or image URL.
+   - ColSpan: A number from 1 to 12.
 
-Please provide only the HTML code.\n\n${request}`;
+   Example: <td bgcolor="%={Màu nền|1|#f0f0f0|4}">...</td>
+
+Design Requirements:
+- Modern, clean, professional aesthetic.
+- High contrast and readability.
+- All colors and background images must be editable via the syntax above.
+- Support for "Rich Text" sections (bold/italic) within the multi-line fields.
+
+No explain, just code
+`;
 
 export default function PromptPane() {
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState(""),
+    [htmlTemplate, setHtmlTemplate] = useState("");
 
   const copyPrompt = async () => {
     try {
@@ -45,6 +60,24 @@ export default function PromptPane() {
     } catch (err) {
       console.error("Failed to copy: ", err);
     }
+  };
+
+  const minifyHTML = (html: string): string => {
+    return html.replaceAll(/\s+/g, " ").replaceAll(/>\s+</g, "><").trim();
+  };
+
+  const sendPrompt = () => {
+    if (!htmlTemplate.trim()) {
+      alert("Vui lòng dán mã HTML từ AI vào ô nhập liệu!");
+      return;
+    }
+
+    const encoded = encodeData({ template: minifyHTML(htmlTemplate) });
+
+    const currentPath = window.location.pathname;
+    const newUrl = `${currentPath}?html=${encoded}`;
+
+    window.location.href = newUrl;
   };
 
   return (
@@ -88,8 +121,17 @@ export default function PromptPane() {
                     kết quả vào ô dưới
                   </AlertDialogDescription>
                 </AlertDialogHeader>
+                <Textarea
+                  className="max-h-64"
+                  value={htmlTemplate}
+                  onChange={(e) => setHtmlTemplate(e.target.value)}
+                ></Textarea>
                 <AlertDialogFooter>
-                  <AlertDialogAction variant="default" size="default">
+                  <AlertDialogAction
+                    variant="default"
+                    size="default"
+                    onClick={sendPrompt}
+                  >
                     Tiếp tục
                   </AlertDialogAction>
                 </AlertDialogFooter>

@@ -4,24 +4,49 @@ import { SidebarInset } from "./ui/sidebar";
 import { useLocation } from "react-router";
 import { useEffect, useState } from "react";
 import SidebarHeader from "./ui/sidebar-header";
+import { decodeData } from "@/lib/utils";
 
 export default function Layout() {
   const [isEdit, setIsEdit] = useState(true),
     [mailTemplate, setMailTemplate] = useState(""),
     [previewHtml, setPreviewHtml] = useState(""),
-    { pathname } = useLocation();
+    { pathname, search } = useLocation();
 
   useEffect(() => {
     const exec = async () => {
-      const templateName = pathname.split("/")[2],
-        res = await fetch(`./templates/${templateName}.html`),
-        text = await res.text();
+      const params = new URLSearchParams(search),
+        encodedHtml = params.get("html")?.replaceAll(/ /g, "+");
 
-      if (templateName == "") setIsEdit(false);
-      else setMailTemplate(text);
+      if (encodedHtml) {
+        const decodedTemplate = decodeData(encodedHtml);
+        if (decodedTemplate) {
+          setMailTemplate(decodedTemplate?.["template"]);
+          return;
+        }
+      }
+
+      const templateName = pathname.split("/")[2];
+
+      if (!templateName || templateName === "") {
+        setIsEdit(false);
+        return;
+      }
+
+      try {
+        const res = await fetch(`./templates/${templateName}.html`);
+
+        if (res.ok) {
+          const text = await res.text();
+          setMailTemplate(text);
+        } else {
+          setIsEdit(false);
+        }
+      } catch {
+        /* empty */
+      }
     };
     exec();
-  }, [pathname]);
+  }, [pathname, search]);
 
   return (
     <>

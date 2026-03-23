@@ -36,8 +36,8 @@ export function decodeData(base64: string) {
         .join(""),
     );
     return JSON.parse(json);
-  } catch {
-    /* empty */
+  } catch (e) {
+    console.log(e)
   }
 }
 

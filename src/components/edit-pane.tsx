@@ -48,7 +48,7 @@ export default function EditPane({
     const encodedData = params.get("ph") || params.get("data");
     const savedValues = encodedData ? decodeData(encodedData) : null;
 
-    const regex = /%={'([^']*)':(.)'([^']*)'(.?)}/g;
+    const regex = /%={([^|]+)\|([^|]*)\|([^|]*)\|(\d+)}/g;;
 
     const resultMap = new Map<string, PlaceholderItem>();
     let match: RegExpExecArray | null;
