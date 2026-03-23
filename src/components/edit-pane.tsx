@@ -43,7 +43,7 @@ export default function EditPane({
 
   const parsePlaceholders = useCallback((text: string) => {
     const params = new URLSearchParams(window.location.search);
-    const encodedData = params.get("data");
+    const encodedData = params.get("ph");
     const savedValues = encodedData ? decodeData(encodedData) : null;
 
     const regex = /%={'([^']*)':(.)'([^']*)'(.?)}/g;
@@ -241,7 +241,7 @@ export default function EditPane({
         <Button
           size="icon"
           aria-label="Submit"
-          onClick={() => copyShareUrl(placeholders)}
+          onClick={() => copyShareUrl({ placeholders })}
         >
           <Copy />
         </Button>

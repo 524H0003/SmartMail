@@ -41,7 +41,11 @@ export function decodeData(base64: string) {
   }
 }
 
-export function copyShareUrl(placeholders: PlaceholderItem[]) {
+export function copyShareUrl({
+  placeholders,
+}: {
+  placeholders: PlaceholderItem[];
+}) {
   const dataToSave = placeholders.reduce(
     (acc, item) => {
       if (item.currentValue !== item.defaultValue) {
@@ -56,9 +60,9 @@ export function copyShareUrl(placeholders: PlaceholderItem[]) {
 
   if (Object.keys(dataToSave).length > 0) {
     const encoded = encodeData(dataToSave);
-    url.searchParams.set("data", encoded);
+    url.searchParams.set("ph", encoded);
   } else {
-    url.searchParams.delete("data");
+    url.searchParams.delete("ph");
   }
 
   navigator.clipboard.writeText(url.toString());
