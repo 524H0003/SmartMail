@@ -52,7 +52,7 @@ export default function EditPane({
     const encodedData = params.get("ph") || params.get("data");
     const savedValues = encodedData ? decodeData(encodedData) : null;
 
-    const regex = /%={([^|]+)\|([^|]*)\|([^|]*)\|(\d+)}/g;
+    const regex = /%={([\s\S]+?)\|([\s\S]*?)\|([\s\S]*?)\|(\d+)}/g;
 
     const resultMap = new Map<string, PlaceholderItem>();
     let match: RegExpExecArray | null;
@@ -201,12 +201,6 @@ export default function EditPane({
     onMailHtmlChange(updatedHtml);
   }, [placeholders, onMailHtmlChange, htmlCode]);
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    parsePlaceholders(mailTemplate);
-    setHtmlCode(mailTemplate);
-  }, [mailTemplate, parsePlaceholders]);
-
   const formatHTML = (html: string): string => {
     return beautifyHtml(html, {
       indent_size: 2,
@@ -215,11 +209,19 @@ export default function EditPane({
       preserve_newlines: true,
       indent_scripts: "normal",
       end_with_newline: false,
-      wrap_line_length: 0,
+      wrap_line_length: 80,
       indent_inner_html: true,
       indent_empty_lines: false,
     });
   };
+
+  useEffect(() => {
+    const template = formatHTML(mailTemplate);
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    parsePlaceholders(template);
+    setHtmlCode(template);
+  }, [mailTemplate, parsePlaceholders]);
 
   return (
     <Sidebar>
@@ -240,7 +242,7 @@ export default function EditPane({
               <FieldLabel htmlFor="editHtml">Mã html</FieldLabel>
               <Textarea
                 wrap="off"
-                value={formatHTML(htmlCode)}
+                value={htmlCode}
                 onChange={(e) => setHtmlCode(e.target.value)}
                 className="max-h-64"
               />
