@@ -19,7 +19,7 @@ import {
   SidebarMenuItem,
 } from "./ui/sidebar";
 import { Textarea } from "./ui/textarea";
-import { encodeData } from "@/lib/utils";
+import { compressTemplate, encodeData } from "@/lib/utils";
 
 const AI_PROMPT_TEMPLATE = (request: string) => `
 Role: Expert Email Developer specializing in Outlook-safe HTML.
@@ -72,7 +72,9 @@ export default function PromptPane() {
       return;
     }
 
-    const encoded = encodeData({ template: minifyHTML(htmlTemplate) });
+    const encoded = encodeData({
+      template: compressTemplate(minifyHTML(htmlTemplate)),
+    });
 
     const currentPath = window.location.pathname;
     const newUrl = `${currentPath}?html=${encoded}`;

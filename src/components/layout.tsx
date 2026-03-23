@@ -4,7 +4,7 @@ import { SidebarInset } from "./ui/sidebar";
 import { useLocation } from "react-router";
 import { useEffect, useState } from "react";
 import SidebarHeader from "./ui/sidebar-header";
-import { decodeData } from "@/lib/utils";
+import { decodeData, decompressTemplate } from "@/lib/utils";
 
 export default function Layout() {
   const [isEdit, setIsEdit] = useState(true),
@@ -20,7 +20,7 @@ export default function Layout() {
       if (encodedHtml) {
         const decodedTemplate = decodeData(encodedHtml);
         if (decodedTemplate) {
-          setMailTemplate(decodedTemplate?.["template"]);
+          setMailTemplate(decompressTemplate(decodedTemplate?.["template"]));
           return;
         }
       }

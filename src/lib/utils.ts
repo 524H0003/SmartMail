@@ -1,4 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
+import {
+  compressToEncodedURIComponent,
+  decompressFromEncodedURIComponent,
+} from "lz-string";
 import { twMerge } from "tailwind-merge";
 
 export type TypeValue = "multi" | "single";
@@ -37,7 +41,7 @@ export function decodeData(base64: string) {
     );
     return JSON.parse(json);
   } catch (e) {
-    console.log(e)
+    console.log(e);
   }
 }
 
@@ -67,3 +71,17 @@ export function copyShareUrl({
 
   navigator.clipboard.writeText(url.toString());
 }
+
+export const compressTemplate = (html: string): string => {
+  return compressToEncodedURIComponent(html);
+};
+
+export const decompressTemplate = (compressed: string): string => {
+  try {
+    const decompressed = decompressFromEncodedURIComponent(compressed);
+    return decompressed || "";
+  } catch (error) {
+    console.error("Lỗi giải nén:", error);
+    return "";
+  }
+};
