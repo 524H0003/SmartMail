@@ -48,7 +48,7 @@ export default function EditPane({
     const encodedData = params.get("ph") || params.get("data");
     const savedValues = encodedData ? decodeData(encodedData) : null;
 
-    const regex = /%={([^|]+)\|([^|]*)\|([^|]*)\|(\d+)}/g;;
+    const regex = /%={([^|]+)\|([^|]*)\|([^|]*)\|(\d+)}/g;
 
     const resultMap = new Map<string, PlaceholderItem>();
     let match: RegExpExecArray | null;
@@ -173,7 +173,7 @@ export default function EditPane({
         };
 
         return (
-          <Field className={`col-span-${item.colSpan}`} key={i}>
+          <Field className={`col-span-${item.colSpan} justify-between`} key={i}>
             <FieldLabel htmlFor={"input-" + i}>{item.fieldName}</FieldLabel>
             {item.type == "single" && <Input {...commonProps} />}
             {item.type == "multi" && (
@@ -215,7 +215,9 @@ export default function EditPane({
         </SidebarMenuButton>
       </SidebarHeader>
       <CardContent className="overflow-y-auto">
-        <FieldGroup className="grid gap-4">{fields}</FieldGroup>
+        <FieldGroup className="grid gap-4">
+          {fields}
+        </FieldGroup>
       </CardContent>
       <SidebarFooter className="flex flex-row">
         <AlertDialog>

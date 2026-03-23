@@ -23,7 +23,7 @@ import { compressTemplate, encodeData } from "@/lib/utils";
 
 const AI_PROMPT_TEMPLATE = (request: string) => `
 Role: Expert Email Developer specializing in Outlook-safe HTML.
-Task: Generate a high-quality, table-based HTML email template based on the following request: "${request}"
+Task: Generate a high-quality, table-based HTML email template based on the following request: "${request.trim()}"
 
 Technical Architecture:
 1. Layout: Use 100% table-based layouts (nested tables). Avoid <div> for structural positioning to ensure 100% Cross-Device/Outlook compatibility.
@@ -36,7 +36,7 @@ Technical Architecture:
    - FieldName: Vietnamese with spaces (e.g., "Tiêu đề chính").
    - Type: "1" for input, empty for textarea.
    - DefaultValue: The initial content, hex color, or image URL.
-   - ColSpan: A number from 1 to 12.
+   - ColSpan: A number from 1 to 12 for grid 12 columns.
 
    Example: <td bgcolor="%={Màu nền|1|#f0f0f0|4}">...</td>
 
@@ -46,8 +46,7 @@ Design Requirements:
 - All colors and background images must be editable via the syntax above.
 - Support for "Rich Text" sections (bold/italic) within the multi-line fields.
 
-No explain, just code
-`;
+No explain, just code`;
 
 export default function PromptPane() {
   const [prompt, setPrompt] = useState(""),
