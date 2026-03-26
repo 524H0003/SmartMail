@@ -6,7 +6,7 @@ import tseslint from "typescript-eslint";
 const eslintConfig = defineConfig([
   eslint.configs.recommended,
   tseslint.configs.recommended,
-  globalIgnores(["dist/**", "**/shadcn"]),
+  globalIgnores(["dist/**", "**/shadcn", "**/components/ui"]),
   {
     plugins: {
       "unused-imports": unusedImports,
