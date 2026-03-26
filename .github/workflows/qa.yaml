@@ -1,0 +1,73 @@
+name: Quality Assurance
+
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    branches-ignore:
+      - main
+
+env:
+  NEXT_TELEMETRY_DISABLED: 1
+  CI: "true"
+
+jobs:
+  qa:
+    permissions:
+      contents: write
+      checks: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: latest
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install Dependencies
+        run: |
+          pnpm install 
+          # pnpm cypress:install
+
+      - name: Build Check
+        if: always()
+        run: pnpm build
+
+      - name: Lint Check
+        if: always()
+        run: pnpm lint
+
+      # - name: Cypress E2E Tests
+      #   uses: cypress-io/github-action@v6
+      #   with:
+      #     runTests: true
+      #     command: pnpm e2e:headless
+
+      # - name: Cypress Component Tests
+      #   uses: cypress-io/github-action@v6
+      #   with:
+      #     runTests: true
+      #     command: pnpm component:headless
+
+      - name: Annotate Code Linting Results
+        uses: ataylorme/eslint-annotate-action@3.0.0
+        if: always()
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          report-json: 'reports/eslint.json'
