@@ -5,7 +5,7 @@ export default function Sidebar({
   isEdit,
   mailTemplate,
   onMailHtmlChange,
-  editHtml
+  editHtml,
 }: {
   isEdit: boolean;
 } & EditPaneProps) {

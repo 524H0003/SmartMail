@@ -1,4 +1,16 @@
 import {
+  type PlaceholderItem,
+  type TypeValue,
+  copyShareUrl,
+  minifyHTML,
+} from "@/lib/utils";
+import { html as beautifyHtml } from "js-beautify";
+import { Eye, Share } from "lucide-react";
+import { decompressFromEncodedURIComponent } from "lz-string";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router";
+
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogContent,
@@ -8,19 +20,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./ui/alert-dialog";
-import { CardContent } from "./ui/card";
 import { Button } from "./ui/button";
-import { Eye, Share } from "lucide-react";
+import { CardContent } from "./ui/card";
 import { FieldGroup } from "./ui/field";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  copyShareUrl,
-  minifyHTML,
-  type PlaceholderItem,
-  type TypeValue,
-} from "@/lib/utils";
 import { Field, FieldLabel } from "./ui/field";
-import { Textarea } from "./ui/textarea";
 import { Input } from "./ui/input";
 import {
   Sidebar,
@@ -29,9 +32,7 @@ import {
   SidebarMenuButton,
   useSidebar,
 } from "./ui/sidebar";
-import { html as beautifyHtml } from "js-beautify";
-import { decompressFromEncodedURIComponent } from "lz-string";
-import { useLocation } from "react-router";
+import { Textarea } from "./ui/textarea";
 
 export interface EditPaneProps {
   onMailHtmlChange: (mailHtml: string) => void;
@@ -245,10 +246,10 @@ export default function EditPane({
 
   return (
     <Sidebar>
-      <SidebarHeader className="flex items-center justify-between flex-row">
+      <SidebarHeader className="flex flex-row items-center justify-between">
         <h1 className="text-lg font-semibold">Chỉnh sửa nội dung</h1>
         <SidebarMenuButton asChild>
-          <Button className="md:hidden w-fit" onClick={toggleSidebar}>
+          <Button className="w-fit md:hidden" onClick={toggleSidebar}>
             <Eye className="mr-2 size-4" />
             Xem trước
           </Button>
@@ -258,7 +259,7 @@ export default function EditPane({
         <FieldGroup className="grid gap-4">
           {fields}
           {editHtml && (
-            <Field className={`col-span-12 justify-between min-w-0`}>
+            <Field className={`col-span-12 min-w-0 justify-between`}>
               <FieldLabel htmlFor="editHtml">Mã html</FieldLabel>
               <Textarea
                 wrap="off"

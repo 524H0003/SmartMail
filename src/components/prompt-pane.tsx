@@ -1,4 +1,7 @@
+import { minifyHTML } from "@/lib/utils";
+import { compressToEncodedURIComponent } from "lz-string";
 import { useState } from "react";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,8 +22,6 @@ import {
   SidebarMenuItem,
 } from "./ui/sidebar";
 import { Textarea } from "./ui/textarea";
-import { minifyHTML } from "@/lib/utils";
-import { compressToEncodedURIComponent } from "lz-string";
 
 const AI_PROMPT_TEMPLATE = (request: string) => `
 Role: Expert Email Developer specializing in Outlook-safe HTML.
