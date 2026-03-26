@@ -23,33 +23,43 @@ import {
 } from "./ui/sidebar";
 import { Textarea } from "./ui/textarea";
 
-const AI_PROMPT_TEMPLATE = (request: string) => `
-Role: Expert Email Developer specializing in Outlook-safe HTML.
-Task: Generate a high-quality, table-based HTML email template based on the following request: "${request.trim()}"
+const AI_PROMPT_TEMPLATE = (request: string) => /* tx */ `
+  Role: Expert Email Developer specializing in Outlook-safe HTML. Task: Generate
+  a high-quality, table-based HTML email template based on the following
+  request: "${request.trim()}"
 
-Technical Architecture:
-1. Layout: Use 100% table-based layouts (nested tables). Avoid <div> for structural positioning to ensure 100% Cross-Device/Outlook compatibility.
-2. Styling: 
-   - Use strictly Inline CSS. 
-   - Container: 600px max-width, centered, border-radius: 16px (include Outlook VML fallback if possible, otherwise standard inline-style).
-   - Images: display:block; border:0; width:100%; height:auto.
-3. Custom Variable Syntax (Crucial): 
-   Every dynamic element must follow this EXACT format: %={FieldName|Type|DefaultValue|ColSpan}
-   - FieldName: Vietnamese with spaces (e.g., "Tiêu đề chính").
-   - Type: "1" for input, empty for textarea.
-   - DefaultValue: The initial content, hex color, or image URL.
-   - ColSpan: A number from 1 to 12 for grid 12 columns.
+  Technical Architecture:
 
-   Example: <td bgcolor="%={Màu nền|1|#f0f0f0|4}">...</td>
+  1. Layout: Use 100% table-based layouts (nested tables). Avoid <div> for
+     structural positioning to ensure 100% Cross-Device/Outlook compatibility.
+  2. Styling:
 
-Design Requirements:
-- Modern, clean, professional aesthetic.
-- High contrast and readability.
-- All colors and background images must be editable via the syntax above.
-- Support for "Rich Text" sections (bold/italic) within the multi-line fields.
-- For every button or call-to-action, you MUST provide separate editable fields.
+  - Use strictly Inline CSS.
+  - Container: 600px max-width, centered, border-radius: 16px (include Outlook
+    VML fallback if possible, otherwise standard inline-style).
+  - Images: display:block; border:0; width:100%; height:auto.
 
-No explain, just code`;
+  3. Custom Variable Syntax (Crucial): Every dynamic element must follow this
+     EXACT format: %={FieldName|Type|DefaultValue|ColSpan}
+
+  - FieldName: Vietnamese with spaces (e.g., "Tiêu đề chính").
+  - Type: "1" for input, empty for textarea.
+  - DefaultValue: The initial content, hex color, or image URL.
+  - ColSpan: A number from 1 to 12 for grid 12 columns.
+
+  Example: <td bgcolor="%={Màu nền|1|#f0f0f0|4}">...</td>
+
+  Design Requirements:
+
+  - Modern, clean, professional aesthetic.
+  - High contrast and readability.
+  - All colors and background images must be editable via the syntax above.
+  - Support for "Rich Text" sections (bold/italic) within the multi-line fields.
+  - For every button or call-to-action, you MUST provide separate editable
+    fields.
+
+  No explain, just code
+`;
 
 export default function PromptPane() {
   const [prompt, setPrompt] = useState(""),
@@ -71,7 +81,11 @@ export default function PromptPane() {
     }
 
     const currentPath = window.location.pathname;
-    const newUrl = `${currentPath}?html=${compressToEncodedURIComponent(minifyHTML(htmlTemplate))}`;
+    const newUrl = /* tx */ `
+      ${currentPath}?html=${compressToEncodedURIComponent(
+        minifyHTML(htmlTemplate),
+      )}
+    `;
 
     window.location.href = newUrl;
   };
