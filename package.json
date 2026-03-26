@@ -9,7 +9,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint --output-file reports/eslint.json --format json",
     "preview": "vite preview",
-    "commit": "cz"
+    "commit": "cz",
+    "release": "semantic-release"
   },
   "config": {
     "commitizen": {
