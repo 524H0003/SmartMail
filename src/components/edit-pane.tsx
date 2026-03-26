@@ -112,9 +112,6 @@ export default function EditPane({
     } catch (err) {
       console.error("Lỗi khi copy Rich Text: ", err);
       navigator.clipboard.writeText(mailHtml);
-      alert(
-        "Trình duyệt không hỗ trợ copy Rich Text, đã chuyển sang copy code HTML thuần.",
-      );
     }
   };
 
@@ -211,7 +208,6 @@ export default function EditPane({
       updatedHtml = updatedHtml.replaceAll(item.original, item.currentValue);
     });
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMailHtml(updatedHtml);
 
     onMailHtmlChange(updatedHtml);
@@ -233,14 +229,12 @@ export default function EditPane({
 
   useEffect(() => {
     const template = formatHTML(mailTemplate);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHtmlCode(template);
 
     parsePlaceholders(mailTemplate);
   }, [mailTemplate, parsePlaceholders]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     parsePlaceholders(minifyHTML(htmlCode));
   }, [htmlCode, parsePlaceholders]);
 
