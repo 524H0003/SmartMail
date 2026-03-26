@@ -15,7 +15,6 @@ import { FieldGroup } from "./ui/field";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   copyShareUrl,
-  decodeData,
   minifyHTML,
   type PlaceholderItem,
   type TypeValue,
@@ -31,6 +30,8 @@ import {
   useSidebar,
 } from "./ui/sidebar";
 import { html as beautifyHtml } from "js-beautify";
+import { decompressFromEncodedURIComponent } from "lz-string";
+import { useLocation } from "react-router";
 
 export interface EditPaneProps {
   onMailHtmlChange: (mailHtml: string) => void;
@@ -46,12 +47,15 @@ export default function EditPane({
   const [mailHtml, setMailHtml] = useState(""),
     [placeholders, setPlaceholders] = useState<PlaceholderItem[]>([]),
     [htmlCode, setHtmlCode] = useState(""),
+    { pathname } = useLocation(),
     { toggleSidebar } = useSidebar();
 
   const parsePlaceholders = useCallback((text: string) => {
     const params = new URLSearchParams(window.location.search);
     const encodedData = params.get("ph") || params.get("data");
-    const savedValues = encodedData ? decodeData(encodedData) : null;
+    const savedValues = encodedData
+      ? JSON.parse(decompressFromEncodedURIComponent(encodedData))
+      : null;
 
     const regex = /%={([\s\S]+?)\|([\s\S]*?)\|([\s\S]*?)\|(\d+)}/g;
 
@@ -296,7 +300,12 @@ export default function EditPane({
         <Button
           size="icon"
           aria-label="Submit"
-          onClick={() => copyShareUrl({ placeholders })}
+          onClick={() =>
+            copyShareUrl({
+              placeholders,
+              html: pathname.split("/")[2] == "" ? htmlCode : undefined,
+            })
+          }
         >
           <Share />
         </Button>

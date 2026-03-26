@@ -19,7 +19,8 @@ import {
   SidebarMenuItem,
 } from "./ui/sidebar";
 import { Textarea } from "./ui/textarea";
-import { compressTemplate, encodeData, minifyHTML } from "@/lib/utils";
+import { minifyHTML } from "@/lib/utils";
+import { compressToEncodedURIComponent } from "lz-string";
 
 const AI_PROMPT_TEMPLATE = (request: string) => `
 Role: Expert Email Developer specializing in Outlook-safe HTML.
@@ -45,6 +46,7 @@ Design Requirements:
 - High contrast and readability.
 - All colors and background images must be editable via the syntax above.
 - Support for "Rich Text" sections (bold/italic) within the multi-line fields.
+- For every button or call-to-action, you MUST provide separate editable fields.
 
 No explain, just code`;
 
@@ -67,12 +69,8 @@ export default function PromptPane() {
       return;
     }
 
-    const encoded = encodeData({
-      template: compressTemplate(minifyHTML(htmlTemplate)),
-    });
-
     const currentPath = window.location.pathname;
-    const newUrl = `${currentPath}?html=${encoded}`;
+    const newUrl = `${currentPath}?html=${compressToEncodedURIComponent(minifyHTML(htmlTemplate))}`;
 
     window.location.href = newUrl;
   };
