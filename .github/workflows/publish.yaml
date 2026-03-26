@@ -1,39 +1,20 @@
-name: Release package
+name: Deploy to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
-      - dev-*
+    branches: ["main"] 
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  release:
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-      id-token: write
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/create-github-app-token@v2
-        id: app-token
-        with:
-          app-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-
-      - name: Get GitHub App User ID
-        id: get-user-id
-        run:
-          echo "user-id=$(gh api
-          "/users/${{steps.app-token.outputs.app-slug}}[bot]" --jq .id)" >>
-          "$GITHUB_OUTPUT"
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-
-      - uses: actions/checkout@v6
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - uses: actions/setup-node@v6
         with:
@@ -57,25 +38,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Update dependencies
-        run: pnpm update
+      - name: Install dependencies
+        run: pnpm install
 
-      - name: Format code
-        run: pnpm format
+      - name: Build project
+        run: pnpm build
 
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: pnpm release
+      - name: Change name
+        run: mv dist/index.html dist/404.html
 
-      - name: Commit & Push Changes
-        if: always()
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            git rm -r --cached .
-            git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
-            git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
-            git add .
-            git commit -m "chore: release [ci skip]"
-            git push
-          fi
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./dist"
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
