@@ -52,7 +52,6 @@ export async function copyShareUrl({
   const res = await (
     await fetch("https://url.demonkernel.io.vn/rest/v3/short-urls", {
       headers: {
-        "X-Api-Key": "c3f74c2b-d234-4c63-9bb4-792c1dd0dc32",
         "Content-Type": " application/json",
       },
       body: `{
