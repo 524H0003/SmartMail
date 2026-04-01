@@ -17,7 +17,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function copyShareUrl({
+export async function copyShareUrl({
   placeholders,
   html,
 }: {
@@ -49,7 +49,22 @@ export function copyShareUrl({
       compressToEncodedURIComponent(minifyHTML(html)),
     );
 
-  navigator.clipboard.writeText(url.toString());
+  const res = await (
+    await fetch("https://url.demonkernel.io.vn/rest/v3/short-urls", {
+      headers: {
+        "X-Api-Key": "c3f74c2b-d234-4c63-9bb4-792c1dd0dc32",
+        "Content-Type": " application/json",
+      },
+      body: `{
+       "longUrl": "${url.toString()}",
+       "findIfExists": true,
+       "validateUrl": true
+     }`,
+      method: "POST",
+    })
+  ).json();
+
+  navigator.clipboard.writeText(res["shortUrl"]);
 }
 
 export function minifyHTML(html: string): string {
