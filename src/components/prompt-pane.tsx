@@ -50,7 +50,7 @@ const AI_PROMPT_TEMPLATE = (request: string) => /* tx */ `
   Example: <td bgcolor="%={Màu nền|1|#f0f0f0|4}">...</td>
 
   Design Requirements:
-
+  - No <title /> tag
   - Modern, clean, professional aesthetic.
   - High contrast and readability.
   - All colors and background images must be editable via the syntax above.
