@@ -50,6 +50,7 @@ export default function EditPane({
     [placeholders, setPlaceholders] = useState<PlaceholderItem[]>([]),
     [htmlCode, setHtmlCode] = useState(""),
     { pathname } = useLocation(),
+    [isOpenAlert, setOpenAlert] = useState(false),
     { toggleSidebar } = useSidebar();
 
   const parsePlaceholders = useCallback((text: string) => {
@@ -99,12 +100,14 @@ export default function EditPane({
   }, []);
 
   const copyToClipboard = async () => {
-    try {
-      let finalHtml = mailHtml;
+    let finalHtml = mailHtml;
 
+    try {
       // 1. Tìm tất cả các link (href) và src của ảnh nếu cần rút gọn
       // Regex này tìm các chuỗi nằm trong href="..." hoặc src="..."
-      const urlRegex = /(?:href|src)="([^"]+)"/g;
+      const urlRegex =
+        // eslint-disable-next-line max-len
+        /(?:href|src|background)="([^"]+)"|url\((?:&quot;|['"]?)([^&'")]+)(?:&quot;|['"]?)\)/g;
       const matches = [...mailHtml.matchAll(urlRegex)];
 
       // Lọc ra danh sách URL duy nhất để tránh gọi API trùng lặp
@@ -129,22 +132,22 @@ export default function EditPane({
         // Thay thế tất cả các lần xuất hiện của longUrl
         finalHtml = finalHtml.split(longUrl).join(shortUrl);
       });
-
-      setMailHtml(finalHtml);
     } catch (err) {
       console.error("Lỗi khi xử lý link hoặc copy: ", err);
     } finally {
-      const blob = new Blob([mailHtml], { type: "text/html" });
+      const blob = new Blob([finalHtml], { type: "text/html" });
 
       const data = [
         new ClipboardItem({
           "text/html": blob,
-          "text/plain": new Blob([mailHtml], { type: "text/plain" }),
+          "text/plain": new Blob([finalHtml], { type: "text/plain" }),
         }),
       ];
 
       await navigator.clipboard.write(data);
     }
+
+    setOpenAlert(true);
   };
 
   const handleInputChange = useCallback(
@@ -298,16 +301,14 @@ export default function EditPane({
         </FieldGroup>
       </CardContent>
       <SidebarFooter className="flex flex-row">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              onClick={copyToClipboard}
-              className="flex-1"
-              variant="outline"
-            >
-              Sao chép nội dung email
-            </Button>
-          </AlertDialogTrigger>
+        <AlertDialog open={isOpenAlert} onOpenChange={setOpenAlert}>
+          <Button
+            onClick={copyToClipboard}
+            className="flex-1"
+            variant="outline"
+          >
+            Sao chép nội dung email
+          </Button>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
