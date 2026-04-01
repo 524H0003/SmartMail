@@ -3,6 +3,7 @@ import {
   type TypeValue,
   copyShareUrl,
   minifyHTML,
+  urlShortener,
 } from "@/lib/utils";
 import { html as beautifyHtml } from "js-beautify";
 import { Eye, Share } from "lucide-react";
@@ -18,7 +19,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import { Button } from "./ui/button";
 import { CardContent } from "./ui/card";
@@ -49,6 +49,7 @@ export default function EditPane({
     [placeholders, setPlaceholders] = useState<PlaceholderItem[]>([]),
     [htmlCode, setHtmlCode] = useState(""),
     { pathname } = useLocation(),
+    [isOpenAlert, setOpenAlert] = useState(false),
     { toggleSidebar } = useSidebar();
 
   const parsePlaceholders = useCallback((text: string) => {
@@ -98,21 +99,54 @@ export default function EditPane({
   }, []);
 
   const copyToClipboard = async () => {
+    let finalHtml = mailHtml;
+
     try {
-      const blob = new Blob([mailHtml], { type: "text/html" });
+      // 1. Tìm tất cả các link (href) và src của ảnh nếu cần rút gọn
+      // Regex này tìm các chuỗi nằm trong href="..." hoặc src="..."
+      const urlRegex =
+        // eslint-disable-next-line max-len
+        /(?:href|src|background)="([^"]+)"|url\((?:&quot;|['"]?)([^&'")]+)(?:&quot;|['"]?)\)/g;
+      const matches = [...mailHtml.matchAll(urlRegex)];
+
+      // Lọc ra danh sách URL duy nhất để tránh gọi API trùng lặp
+      const uniqueUrls = [...new Set(matches.map((m) => m[1]))];
+
+      // 2. Tạo một Map để lưu trữ kết quả rút gọn
+      const urlMap = new Map();
+
+      // 3. Gọi API rút gọn cho từng URL (Chạy song song để tối ưu tốc độ)
+      await Promise.all(
+        uniqueUrls.map(async (url) => {
+          try {
+            urlMap.set(url, await urlShortener(url));
+          } catch (e) {
+            console.error(`Không thể rút gọn link: ${url}`, e);
+          }
+        }),
+      );
+
+      // 4. Thay thế các URL cũ bằng URL mới trong HTML
+      urlMap.forEach((shortUrl, longUrl) => {
+        // Thay thế tất cả các lần xuất hiện của longUrl
+        finalHtml = finalHtml.split(longUrl).join(shortUrl);
+      });
+    } catch (err) {
+      console.error("Lỗi khi xử lý link hoặc copy: ", err);
+    } finally {
+      const blob = new Blob([finalHtml], { type: "text/html" });
 
       const data = [
         new ClipboardItem({
           "text/html": blob,
-          "text/plain": new Blob([mailHtml], { type: "text/plain" }),
+          "text/plain": new Blob([finalHtml], { type: "text/plain" }),
         }),
       ];
 
       await navigator.clipboard.write(data);
-    } catch (err) {
-      console.error("Lỗi khi copy Rich Text: ", err);
-      navigator.clipboard.writeText(mailHtml);
     }
+
+    setOpenAlert(true);
   };
 
   const handleInputChange = useCallback(
@@ -266,16 +300,14 @@ export default function EditPane({
         </FieldGroup>
       </CardContent>
       <SidebarFooter className="flex flex-row">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              onClick={copyToClipboard}
-              className="flex-1"
-              variant="outline"
-            >
-              Sao chép nội dung email
-            </Button>
-          </AlertDialogTrigger>
+        <AlertDialog open={isOpenAlert} onOpenChange={setOpenAlert}>
+          <Button
+            onClick={copyToClipboard}
+            className="flex-1"
+            variant="outline"
+          >
+            Sao chép nội dung email
+          </Button>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>

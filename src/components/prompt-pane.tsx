@@ -33,31 +33,36 @@ const AI_PROMPT_TEMPLATE = (request: string) => /* tx */ `
   1. Layout: Use 100% table-based layouts (nested tables). Avoid <div> for
      structural positioning to ensure 100% Cross-Device/Outlook compatibility.
   2. Styling:
-
-  - Use strictly Inline CSS.
-  - Container: 600px max-width, centered, border-radius: 16px (include Outlook
-    VML fallback if possible, otherwise standard inline-style).
-  - Images: display:block; border:0; width:100%; height:auto.
+     - Use strictly Inline CSS.
+     - Container: 600px max-width, centered, border-radius: 16px.
+     - Images: display:block; border:0; width:100%; height:auto.
+     - **Constraint: DO NOT use placeholder services (like Placehold.it or
+       Unsplash Source). Use high-quality, contextually relevant REAL images
+       from stable CDNs or descriptive stock photo URLs.**
 
   3. Custom Variable Syntax (Crucial): Every dynamic element must follow this
      EXACT format: %={FieldName|Type|DefaultValue|ColSpan}
+     - FieldName: Vietnamese with spaces (e.g., "Tiêu đề chính").
+     - Type:
+       - "1" for standard input.
+       - "2" for URLs/Links/Paths (Crucial for post-processing).
+       - Empty (blank) for textarea/multiline.
+     - DefaultValue: The initial content, hex color, or image URL.
+     - ColSpan: A number from 1 to 12.
 
-  - FieldName: Vietnamese with spaces (e.g., "Tiêu đề chính").
-  - Type: "1" for input, empty for textarea.
-  - DefaultValue: The initial content, hex color, or image URL.
-  - ColSpan: A number from 1 to 12 for grid 12 columns.
-
-  Example: <td bgcolor="%={Màu nền|1|#f0f0f0|4}">...</td>
+  Example:
+  <a href="%={Đường dẫn nút|2|https://example.com|12}" style="...">...</a>
 
   Design Requirements:
 
-  - No <title /> tag
+  - No <title /> tag.
   - Modern, clean, professional aesthetic.
-  - High contrast and readability.
-  - All colors and background images must be editable via the syntax above.
-  - Support for "Rich Text" sections (bold/italic) within the multi-line fields.
-  - For every button or call-to-action, you MUST provide separate editable
-    fields.
+  - All colors, images, and links must be editable via the syntax above.
+  - For image sources, use Type "2" in the variable syntax:
+    <img src="%={Ảnh bìa|2|https://real-image-url.com/img.jpg|12}" />.
+  - Support for "Rich Text" sections within multi-line fields.
+  - For every button, provide separate editable fields for the text (Type 1) and
+    the URL (Type 2).
 
   No explain, just code
 `;
