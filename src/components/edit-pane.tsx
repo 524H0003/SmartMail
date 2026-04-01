@@ -3,6 +3,7 @@ import {
   type TypeValue,
   copyShareUrl,
   minifyHTML,
+  urlShortener,
 } from "@/lib/utils";
 import { html as beautifyHtml } from "js-beautify";
 import { Eye, Share } from "lucide-react";
@@ -99,6 +100,40 @@ export default function EditPane({
 
   const copyToClipboard = async () => {
     try {
+      let finalHtml = mailHtml;
+
+      // 1. Tìm tất cả các link (href) và src của ảnh nếu cần rút gọn
+      // Regex này tìm các chuỗi nằm trong href="..." hoặc src="..."
+      const urlRegex = /(?:href|src)="([^"]+)"/g;
+      const matches = [...mailHtml.matchAll(urlRegex)];
+
+      // Lọc ra danh sách URL duy nhất để tránh gọi API trùng lặp
+      const uniqueUrls = [...new Set(matches.map((m) => m[1]))];
+
+      // 2. Tạo một Map để lưu trữ kết quả rút gọn
+      const urlMap = new Map();
+
+      // 3. Gọi API rút gọn cho từng URL (Chạy song song để tối ưu tốc độ)
+      await Promise.all(
+        uniqueUrls.map(async (url) => {
+          try {
+            urlMap.set(url, await urlShortener(url));
+          } catch (e) {
+            console.error(`Không thể rút gọn link: ${url}`, e);
+          }
+        }),
+      );
+
+      // 4. Thay thế các URL cũ bằng URL mới trong HTML
+      urlMap.forEach((shortUrl, longUrl) => {
+        // Thay thế tất cả các lần xuất hiện của longUrl
+        finalHtml = finalHtml.split(longUrl).join(shortUrl);
+      });
+
+      setMailHtml(finalHtml);
+    } catch (err) {
+      console.error("Lỗi khi xử lý link hoặc copy: ", err);
+    } finally {
       const blob = new Blob([mailHtml], { type: "text/html" });
 
       const data = [
@@ -109,9 +144,6 @@ export default function EditPane({
       ];
 
       await navigator.clipboard.write(data);
-    } catch (err) {
-      console.error("Lỗi khi copy Rich Text: ", err);
-      navigator.clipboard.writeText(mailHtml);
     }
   };
 

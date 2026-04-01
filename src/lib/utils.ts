@@ -4,6 +4,25 @@ import { twMerge } from "tailwind-merge";
 
 export type TypeValue = "multi" | "single";
 
+export async function urlShortener(url: string) {
+  const response = await fetch(
+    "https://url.demonkernel.io.vn/rest/v3/short-urls",
+    {
+      headers: { "Content-Type": "application/json" },
+      method: "POST",
+      body: JSON.stringify({
+        longUrl: url,
+        findIfExists: true,
+        validateUrl: true,
+      }),
+    },
+  );
+
+  const res = await response.json();
+
+  return res["shortUrl"];
+}
+
 export interface PlaceholderItem {
   fieldName: string;
   type: TypeValue;
@@ -49,21 +68,7 @@ export async function copyShareUrl({
       compressToEncodedURIComponent(minifyHTML(html)),
     );
 
-  const res = await (
-    await fetch("https://url.demonkernel.io.vn/rest/v3/short-urls", {
-      headers: {
-        "Content-Type": " application/json",
-      },
-      body: `{
-       "longUrl": "${url.toString()}",
-       "findIfExists": true,
-       "validateUrl": true
-     }`,
-      method: "POST",
-    })
-  ).json();
-
-  navigator.clipboard.writeText(res["shortUrl"]);
+  navigator.clipboard.writeText(await urlShortener(url.toString()));
 }
 
 export function minifyHTML(html: string): string {
