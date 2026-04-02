@@ -90,7 +90,7 @@ export default function EditPane({
             colSpan,
             original: match[0],
             defaultValue,
-            currentValue: valueToKeep,
+            currentValue: valueToKeep.replace(/\s+/g, " "),
           });
         }
       }
@@ -216,7 +216,7 @@ export default function EditPane({
         const commonProps = {
           id: `input-${i}`,
           placeholder: item.defaultValue.replace(/\s+/g, " "),
-          value: item.currentValue.replace(/\s+/g, " "),
+          value: item.currentValue,
           onChange: (e: React.ChangeEvent<AcceptElements>) =>
             handleInputChange(i, e.target.value),
           onKeyDown: (e: React.KeyboardEvent<AcceptElements>) =>
