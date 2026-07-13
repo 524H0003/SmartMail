@@ -1,0 +1,9 @@
+{
+  "features": {
+    "ghcr.io/MuhmdRaouf/devcontainers-features/alpine-apk:0": {
+      "version": "0.0.1",
+      "resolved": "ghcr.io/muhmdraouf/devcontainers-features/alpine-apk@sha256:3f5010a1880699fad8f65f71002e56bc5cf57c47c63da36c0efea85958ff9044",
+      "integrity": "sha256:3f5010a1880699fad8f65f71002e56bc5cf57c47c63da36c0efea85958ff9044"
+    }
+  }
+}

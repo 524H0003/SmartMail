@@ -48,6 +48,7 @@ export default function EditPane({
   const [mailHtml, setMailHtml] = useState(""),
     [placeholders, setPlaceholders] = useState<PlaceholderItem[]>([]),
     [htmlCode, setHtmlCode] = useState(""),
+    [apiToken, setApiToken] = useState(""),
     { pathname } = useLocation(),
     [isOpenAlert, setOpenAlert] = useState(false),
     { toggleSidebar } = useSidebar();
@@ -119,7 +120,7 @@ export default function EditPane({
       await Promise.all(
         uniqueUrls.map(async (url) => {
           try {
-            urlMap.set(url, await urlShortener(url));
+            urlMap.set(url, await urlShortener(url, apiToken));
           } catch (e) {
             console.error(`Không thể rút gọn link: ${url}`, e);
           }
@@ -285,6 +286,16 @@ export default function EditPane({
       </SidebarHeader>
       <CardContent className="overflow-y-auto">
         <FieldGroup className="grid gap-4">
+          <Field className="col-span-12 justify-between">
+            <FieldLabel htmlFor="apiToken">Shlink API Token</FieldLabel>
+            <Input
+              id="apiToken"
+              type="password"
+              value={apiToken}
+              onChange={(e) => setApiToken(e.target.value)}
+              placeholder="Nhập API Token của Shlink"
+            />
+          </Field>
           {fields}
           {editHtml && (
             <Field className={`col-span-12 min-w-0 justify-between`}>
@@ -331,6 +342,7 @@ export default function EditPane({
             copyShareUrl({
               placeholders,
               html: pathname.split("/")[2] == "" ? htmlCode : undefined,
+              apiToken,
             })
           }
         >
