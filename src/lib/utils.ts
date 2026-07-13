@@ -4,11 +4,18 @@ import { twMerge } from "tailwind-merge";
 
 export type TypeValue = "multi" | "single";
 
-export async function urlShortener(url: string) {
+export async function urlShortener(url: string, apiToken?: string) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (apiToken) {
+    headers["X-Api-Key"] = apiToken;
+  }
+
   const response = await fetch(
     "https://url.demonkernel.io.vn/rest/v3/short-urls",
     {
-      headers: { "Content-Type": "application/json" },
+      headers,
       method: "POST",
       body: JSON.stringify({
         longUrl: url,
@@ -39,9 +46,11 @@ export function cn(...inputs: ClassValue[]) {
 export async function copyShareUrl({
   placeholders,
   html,
+  apiToken,
 }: {
   placeholders: PlaceholderItem[];
   html?: string;
+  apiToken?: string;
 }) {
   const dataToSave = placeholders.reduce(
     (acc, item) => {
@@ -68,7 +77,7 @@ export async function copyShareUrl({
       compressToEncodedURIComponent(minifyHTML(html)),
     );
 
-  navigator.clipboard.writeText(await urlShortener(url.toString()));
+  navigator.clipboard.writeText(await urlShortener(url.toString(), apiToken));
 }
 
 export function minifyHTML(html: string): string {
