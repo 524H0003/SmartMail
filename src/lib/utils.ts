@@ -194,4 +194,3 @@ export function formatHTML(html: string): string {
     indent_empty_lines: false,
   });
 }
-
