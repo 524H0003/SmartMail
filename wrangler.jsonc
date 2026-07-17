@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "smartmail",
+  "main": "worker.ts",
   "compatibility_date": "2026-07-17",
   "observability": {
     "enabled": true
@@ -10,5 +11,11 @@
   },
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2_BUCKET",
+      "bucket_name": "smartmail-media"
+    }
   ]
 }

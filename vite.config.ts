@@ -19,5 +19,4 @@ export default defineConfig({
       "@": resolve(__dirname, "./src"),
     },
   },
-  base: "/SmartMail/",
 });
