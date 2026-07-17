@@ -12,7 +12,7 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <TooltipProvider>
-        <SidebarProvider>
+        <SidebarProvider disableShortcut>
           <Layout />
         </SidebarProvider>
       </TooltipProvider>
