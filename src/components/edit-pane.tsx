@@ -6,8 +6,9 @@ import {
   formatHTML,
   getSavedValues,
   minifyHTML,
+  uploadMedia,
 } from "@/lib/utils";
-import { Eye, Share } from "lucide-react";
+import { Eye, Share, Upload } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router";
 
@@ -22,6 +23,7 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 import { Button } from "./ui/button";
+import { ButtonGroup } from "./ui/button-group";
 import { CardContent } from "./ui/card";
 import { Field, FieldGroup, FieldLabel } from "./ui/field";
 import { Input } from "./ui/input";
@@ -78,6 +80,19 @@ export default function EditPane({
     [placeholders],
   );
 
+  const handleMediaUpload = useCallback(
+    async (i: number, file: File) => {
+      try {
+        const publicUrl = await uploadMedia(file);
+        handleInputChange(i, publicUrl);
+      } catch (error) {
+        console.error("Media upload failed:", error);
+        alert("Failed to upload media file");
+      }
+    },
+    [handleInputChange],
+  );
+
   const fields = useMemo(
     () =>
       placeholders.map((item, i) => {
@@ -90,6 +105,8 @@ export default function EditPane({
           onChange: (e: React.ChangeEvent<AcceptElements>) =>
             handleInputChange(i, e.target.value),
         };
+
+        const id = `media-file-input-${i}`;
 
         return (
           <Field
@@ -106,6 +123,26 @@ export default function EditPane({
                 value={item.currentValue}
                 onChange={(value) => handleInputChange(i, value)}
               />
+            )}
+            {item.type === "media" && (
+              <ButtonGroup>
+                <Input {...commonProps} />
+                <Button asChild variant="outline">
+                  <label htmlFor={id}>
+                    <input
+                      id={id}
+                      type="file"
+                      accept="image/*,video/*,audio/*"
+                      className="hidden"
+                      onChange={(e) =>
+                        e.target.files?.[0] &&
+                        handleMediaUpload(i, e.target.files[0])
+                      }
+                    />
+                    <Upload className="size-4" />
+                  </label>
+                </Button>
+              </ButtonGroup>
             )}
           </Field>
         );

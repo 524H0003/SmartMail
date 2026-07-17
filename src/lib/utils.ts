@@ -6,7 +6,7 @@ import {
 } from "lz-string";
 import { twMerge } from "tailwind-merge";
 
-export type TypeValue = "multi" | "single" | "text";
+export type TypeValue = "multi" | "single" | "text" | "media";
 
 export interface PlaceholderItem {
   fieldName: string;
@@ -119,6 +119,7 @@ export function extractPlaceholders(
       let type: TypeValue = "multi";
       if (tag === "1") type = "single";
       if (tag === "3") type = "text";
+      if (tag === "4") type = "media";
 
       const valueToKeep =
         currentValues.get(fieldName) ??
@@ -136,6 +137,24 @@ export function extractPlaceholders(
     }
   }
   return Array.from(resultMap.values());
+}
+
+export async function uploadMedia(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch("/api/upload", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to upload file to R2");
+  }
+
+  const { publicUrl } = await response.json();
+
+  return publicUrl;
 }
 
 export async function copyMailToClipboard(
