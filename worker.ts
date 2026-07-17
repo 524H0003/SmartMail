@@ -97,9 +97,7 @@ export default {
     }
 
     if (url.pathname.startsWith("/api/media/")) {
-      const key = decodeURIComponent(
-        url.pathname.slice("/api/media/".length),
-      );
+      const key = decodeURIComponent(url.pathname.slice("/api/media/".length));
       return handleMedia(request, env, key);
     }
 
