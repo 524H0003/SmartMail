@@ -5,6 +5,8 @@ import {
   minifyHTML,
   urlShortener,
 } from "@/lib/utils";
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 import { html as beautifyHtml } from "js-beautify";
 import { Eye, Share } from "lucide-react";
 import { decompressFromEncodedURIComponent } from "lz-string";
@@ -79,6 +81,7 @@ export default function EditPane({
         if (!resultMap.has(fieldName)) {
           let type: TypeValue = "multi";
           if (tag === "1") type = "single";
+          if (tag === "3") type = "text";
 
           const valueToKeep =
             currentValuesMap.get(fieldName) ??
@@ -209,6 +212,29 @@ export default function EditPane({
     [handleInputChange],
   );
 
+  // Tiptap Editor component for rich text editing
+  const TiptapEditor = ({
+    value,
+    onChange,
+  }: {
+    value: string;
+    onChange: (value: string) => void;
+  }) => {
+    const editor = useEditor({
+      extensions: [StarterKit],
+      content: value,
+      onUpdate: ({ editor }) => {
+        onChange(editor.getHTML());
+      },
+    });
+
+    return (
+      <div className="min-h-[150px] rounded-md border p-2">
+        <EditorContent editor={editor} />
+      </div>
+    );
+  };
+
   const fields = useMemo(
     () =>
       placeholders.map((item, i) => {
@@ -225,11 +251,20 @@ export default function EditPane({
         };
 
         return (
-          <Field className={`col-span-${item.colSpan} justify-between`} key={i}>
+          <Field
+            className={`col-span-${item.colSpan} min-w-0 justify-between`}
+            key={i}
+          >
             <FieldLabel htmlFor={"input-" + i}>{item.fieldName}</FieldLabel>
             {item.type == "single" && <Input {...commonProps} />}
             {item.type == "multi" && (
               <Textarea className="resize-y" {...commonProps} />
+            )}
+            {item.type == "text" && (
+              <TiptapEditor
+                value={item.currentValue}
+                onChange={(value) => handleInputChange(i, value)}
+              />
             )}
           </Field>
         );

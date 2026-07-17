@@ -2,7 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { compressToEncodedURIComponent } from "lz-string";
 import { twMerge } from "tailwind-merge";
 
-export type TypeValue = "multi" | "single";
+export type TypeValue = "multi" | "single" | "text";
 
 export async function urlShortener(url: string, apiToken?: string) {
   const headers: Record<string, string> = {

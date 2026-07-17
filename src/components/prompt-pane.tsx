@@ -46,6 +46,7 @@ const AI_PROMPT_TEMPLATE = (request: string) => /* tx */ `
      - Type:
        - "1" for standard input.
        - "2" for URLs/Links/Paths (Crucial for post-processing).
+       - "3" for rich text editing with formatting options.
        - Empty (blank) for textarea/multiline.
      - DefaultValue: The initial content, hex color, or image URL.
      - ColSpan: A number from 1 to 12.
