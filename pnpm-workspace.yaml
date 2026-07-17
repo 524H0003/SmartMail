@@ -19,5 +19,8 @@ minimumReleaseAgeExclude:
   - '@tailwindcss/oxide@4.3.3'
   - '@tailwindcss/vite@4.3.3'
   - tailwindcss@4.3.3
+  - '@cloudflare/vite-plugin@1.45.1'
+  - miniflare@4.20260714.0
+  - wrangler@4.112.0
 onlyBuiltDependencies:
   - msw
