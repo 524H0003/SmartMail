@@ -67,7 +67,7 @@ export default function EditPane({
   }, []);
 
   const copyToClipboard = async () => {
-    await copyMailToClipboard(mailHtml, apiToken);
+    await copyMailToClipboard(mailHtml);
     setOpenAlert(true);
   };
 

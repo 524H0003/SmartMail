@@ -21,36 +21,25 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export async function urlShortener(url: string, apiToken?: string) {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (apiToken) {
-    headers["X-Api-Key"] = apiToken;
-  }
-
-  const response = await fetch(
-    "https://url.demonkernel.io.vn/rest/v3/short-urls",
-    {
-      headers,
-      method: "POST",
-      body: JSON.stringify({
-        longUrl: url,
-        findIfExists: true,
-        validateUrl: true,
-      }),
+export async function urlShortener(url: string) {
+  const response = await fetch("/api/shorten", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify({
+      longUrl: url,
+    }),
+  });
 
-  const res = await response.json();
+  const res = await response.json<{ shortUrl: string }>();
 
-  return res["shortUrl"];
+  return res.shortUrl;
 }
 
 export async function copyShareUrl({
   placeholders,
   html,
-  apiToken,
 }: {
   placeholders: PlaceholderItem[];
   html?: string;
@@ -81,7 +70,7 @@ export async function copyShareUrl({
       compressToEncodedURIComponent(minifyHTML(html)),
     );
 
-  navigator.clipboard.writeText(await urlShortener(url.toString(), apiToken));
+  navigator.clipboard.writeText(await urlShortener(url.toString()));
 }
 
 export function minifyHTML(html: string): string {
@@ -152,15 +141,12 @@ export async function uploadMedia(file: File): Promise<string> {
     throw new Error("Failed to upload file to R2");
   }
 
-  const { publicUrl } = await response.json();
+  const { publicUrl } = await response.json<{ publicUrl: string }>();
 
   return publicUrl;
 }
 
-export async function copyMailToClipboard(
-  mailHtml: string,
-  apiToken?: string,
-): Promise<void> {
+export async function copyMailToClipboard(mailHtml: string): Promise<void> {
   let finalHtml = mailHtml;
 
   try {
@@ -176,7 +162,7 @@ export async function copyMailToClipboard(
     await Promise.all(
       uniqueUrls.map(async (url) => {
         try {
-          urlMap.set(url, await urlShortener(url, apiToken));
+          urlMap.set(url, await urlShortener(url));
         } catch (e) {
           console.error(`Không thể rút gọn link: ${url}`, e);
         }

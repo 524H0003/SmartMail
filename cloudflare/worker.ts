@@ -1,23 +1,8 @@
-interface R2PutOptions {
-  httpMetadata?: { contentType?: string };
-}
-
-interface R2ObjectBody {
-  body: ReadableStream;
-  httpMetadata?: { contentType?: string };
-}
-
-interface R2BucketLike {
-  put(
-    key: string,
-    value: ReadableStream | ArrayBuffer | string,
-    options?: R2PutOptions,
-  ): Promise<unknown>;
-  get(key: string): Promise<R2ObjectBody | null>;
-}
+import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
 
 interface Env {
-  R2_BUCKET: R2BucketLike;
+  R2_BUCKET: R2Bucket;
+  DB: D1Database;
   ASSETS: { fetch(request: Request): Promise<Response> };
 }
 
@@ -44,6 +29,7 @@ async function handleUpload(request: Request, env: Env): Promise<Response> {
       : "";
     const key = `${crypto.randomUUID()}${ext}`;
 
+    // @ts-expect-error force
     await env.R2_BUCKET.put(key, file.stream(), {
       httpMetadata: {
         contentType: file.type || "application/octet-stream",
@@ -85,6 +71,7 @@ async function handleMedia(
   );
   headers.set("Cache-Control", "public, max-age=31536000, immutable");
 
+  // @ts-expect-error force
   return new Response(object.body, { headers });
 }
 
@@ -99,6 +86,32 @@ export default {
     if (url.pathname.startsWith("/api/media/")) {
       const key = decodeURIComponent(url.pathname.slice("/api/media/".length));
       return handleMedia(request, env, key);
+    }
+
+    if (url.pathname === "/api/shorten" && request.method === "POST") {
+      // @ts-expect-error force
+      const { longUrl } = await request.json();
+      const slug = crypto.randomUUID().slice(0, 8);
+      await env.DB.prepare("INSERT INTO links (slug, url) VALUES (?, ?)")
+        .bind(slug, longUrl)
+        .run();
+      return new Response(
+        JSON.stringify({ shortUrl: `${url.origin}/short/${slug}` }),
+        {
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    if (url.pathname.startsWith("/short/")) {
+      const slug = url.pathname.slice("/short/".length);
+      const link = await (env.DB.prepare("SELECT url FROM links WHERE slug = ?")
+        .bind(slug)
+        .first() as Promise<{ url: string } | null>);
+      if (link) {
+        return Response.redirect(link.url, 302);
+      }
+      return new Response("Not found", { status: 404 });
     }
 
     // Fall back to the static assets / SPA for everything else.
