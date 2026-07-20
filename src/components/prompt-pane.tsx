@@ -64,6 +64,21 @@ const AI_PROMPT_TEMPLATE = (request: string) => /* tx */ `
 
   Design Requirements:
 
+  - **Commenting for AI Refinement (Crucial):** Include descriptive HTML comments throughout the code to help an AI identify structural sections and variable locations. 
+    Example: '<!-- Section: Header -->', '<!-- Variable: Main Title -->', '<!-- End Section: Footer -->'. 
+    Always wrap the custom variable syntax with comments to make it easy to locate, e.g., '<!-- Variable: Button Link --> <a href="%={...}">...</a> <!-- End Variable -->'.
+  - **Fixed Colors / Prevent Dark Mode Override (Crucial):** The template must maintain fixed light-themed colors and not be affected or inverted by device/email client auto-dark modes (e.g., Gmail, Apple Mail, Outlook). To prevent dark mode color inversion:
+    1. Add the following meta tags inside the '<head>' of the HTML:
+       '<meta name="color-scheme" content="light">'
+       '<meta name="supported-color-schemes" content="light">'
+    2. Add the following style block to the head or container:
+       '<style>
+         :root { color-scheme: light; supported-color-schemes: light; }
+         @media (prefers-color-scheme: dark) {
+           body, table, td, p, span, a, h1, h2, h3 { color: #333333 !important; }
+         }
+       </style>'
+    3. Explicitly define solid, non-transparent background colors on every table, row, and table cell.
   - No <title /> tag.
   - Modern, clean, professional aesthetic.
   - **For every button, provide two separate editable fields:**
