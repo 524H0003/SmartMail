@@ -42,8 +42,6 @@ export function TiptapToolbar({ editor }: TiptapToolbarProps) {
       }),
     }) ?? {};
 
-  if (!editor) return null;
-
   return (
     <div className="bg-muted flex flex-wrap items-center gap-1 rounded-t-md px-3 py-2">
       {/* Alignment Group */}
