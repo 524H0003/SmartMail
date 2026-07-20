@@ -41,8 +41,7 @@ const AI_PROMPT_TEMPLATE = (request: string) => /* tx */ `
        Unsplash Source). Use high-quality, contextually relevant REAL images
        from stable CDNs or descriptive stock photo URLs.**
 
-  3. Custom Variable Syntax (Crucial): Every dynamic element must follow this
-     EXACT format: %={FieldName|Type|DefaultValue|ColSpan}
+  3. Custom Variable Syntax (Mandatory): Every dynamic, editable, or changeable element MUST use this EXACT format: %={FieldName|Type|DefaultValue|ColSpan}. No other placeholders are allowed.
      - FieldName: Vietnamese with spaces (e.g., "Tiêu đề chính").
      - Type:
        - "1" for standard text input (single-line text).
@@ -52,6 +51,7 @@ const AI_PROMPT_TEMPLATE = (request: string) => /* tx */ `
        - Empty (blank) for textarea/multiline text.
      - DefaultValue: The initial content, hex color, or image URL.
      - ColSpan: A number from 1 to 12.
+     - REQUIREMENT: You MUST use this syntax for every single text string, image source, button link, color value, or block of content that a user might want to change later.
 
   Examples:
   - Standard input: <input class="field-single" type="text" value="%={Họ tên|1|Nguyễn Văn A|6}" />
@@ -67,7 +67,8 @@ const AI_PROMPT_TEMPLATE = (request: string) => /* tx */ `
   - **Commenting for AI Refinement (Crucial):** Include descriptive HTML comments throughout the code to help an AI identify structural sections and variable locations. 
     Example: '<!-- Section: Header -->', '<!-- Variable: Main Title -->', '<!-- End Section: Footer -->'. 
     Always wrap the custom variable syntax with comments to make it easy to locate, e.g., '<!-- Variable: Button Link --> <a href="%={...}">...</a> <!-- End Variable -->'.
-  - **Fixed Colors / Prevent Dark Mode Override (Crucial):** The template must maintain fixed light-themed colors and not be affected or inverted by device/email client auto-dark modes (e.g., Gmail, Apple Mail, Outlook). To prevent dark mode color inversion:
+  - **Color Scheme:** ALWAYS follow the color palette provided in the attached reference image.
+  - **Fixed Colors / Prevent Dark Mode Override (Crucial):** The template must maintain fixed light-themed colors (based on the reference image) and not be affected or inverted by device/email client auto-dark modes (e.g., Gmail, Apple Mail, Outlook). To prevent dark mode color inversion:
     1. Add the following meta tags inside the '<head>' of the HTML:
        '<meta name="color-scheme" content="light">'
        '<meta name="supported-color-schemes" content="light">'
@@ -81,6 +82,7 @@ const AI_PROMPT_TEMPLATE = (request: string) => /* tx */ `
     3. Explicitly define solid, non-transparent background colors on every table, row, and table cell.
   - No <title /> tag.
   - Modern, clean, professional aesthetic.
+  - **Email Brief/Preview Text:** Include a hidden or subtly styled "preheader" or "preview text" at the very top of the HTML (before the header). Use the custom variable syntax for the content: <span style="display:none; max-height:0px; overflow:hidden;">%={Email Brief|1|Xem nội dung tại đây|12}</span>.
   - **For every button, provide two separate editable fields:**
     1. Text content (Type 1) - What users see on the button
     2. URL (Type 2) - The link destination (http:// or https://)
@@ -91,7 +93,7 @@ const AI_PROMPT_TEMPLATE = (request: string) => /* tx */ `
   - URL fields (Type 2) should handle both http:// and https:// URLs.
   - For media upload functionality, Type 4 fields will support file uploads.
 
-  Note: Provide the complete, ready-to-use HTML code without explanations.
+  IMPORTANT: Return ONLY raw HTML code. No explanations.
 `;
 
 export default function PromptPane() {

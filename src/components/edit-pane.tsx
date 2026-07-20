@@ -7,9 +7,9 @@ import {
   getSavedValues,
   minifyHTML,
 } from "@/lib/utils";
-import { ArrowLeft, Code, Eye, Share } from "lucide-react";
+import { ArrowLeft, Code, Eye, Home, Share } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 
 import { HtmlCodeEditor } from "./html-code-editor";
 import { MediaUploadButton } from "./media-upload-button";
@@ -48,6 +48,7 @@ export default function EditPane({
   editHtml,
   mailTemplate,
 }: EditPaneProps) {
+  const navigate = useNavigate();
   const [mailHtml, setMailHtml] = useState(""),
     [placeholders, setPlaceholders] = useState<PlaceholderItem[]>([]),
     [htmlCode, setHtmlCode] = useState(""),
@@ -148,7 +149,17 @@ export default function EditPane({
   return (
     <Sidebar>
       <SidebarHeader className="flex flex-row items-center justify-between">
-        <h1 className="text-lg font-semibold">Chỉnh sửa nội dung</h1>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/")}
+            aria-label="Home"
+          >
+            <Home className="size-4" />
+          </Button>
+          <h1 className="text-lg font-semibold">Chỉnh sửa nội dung</h1>
+        </div>
         <div className="flex items-center gap-2">
           {editHtml &&
             (!isCodeMode ? (
