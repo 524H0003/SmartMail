@@ -11,6 +11,14 @@ function toErrorMessage(err: unknown): string {
   return String(err);
 }
 
+async function generateHashId(content: ArrayBuffer): Promise<string> {
+  const hashBuffer = await crypto.subtle.digest("SHA-256", content);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b: number) => b.toString(16).padStart(2, "0"))
+    .slice(0, 9)
+    .join("");
+}
+
 async function handleUpload(request: Request, env: Env): Promise<Response> {
   if (request.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
@@ -27,17 +35,21 @@ async function handleUpload(request: Request, env: Env): Promise<Response> {
     const ext = file.name.includes(".")
       ? file.name.slice(file.name.lastIndexOf("."))
       : "";
-    const key = `${crypto.randomUUID()}${ext}`;
+    const content = await file.arrayBuffer();
+    const key = `${await generateHashId(content)}${ext}`;
 
-    // @ts-expect-error force
-    await env.R2_BUCKET.put(key, file.stream(), {
+    await env.R2_BUCKET.put(key, content, {
       httpMetadata: {
         contentType: file.type || "application/octet-stream",
       },
     });
 
     const url = new URL(request.url);
-    const publicUrl = `${url.origin}/api/media/${key}`;
+    const publicUrl = await shorteningLink(
+      `${url.origin}/api/media/${key}`,
+      url,
+      env,
+    );
 
     return new Response(JSON.stringify({ publicUrl }), {
       headers: { "Content-Type": "application/json" },
@@ -75,13 +87,27 @@ async function handleMedia(
   return new Response(object.body, { headers });
 }
 
+async function shorteningLink(longUrl: string, url: URL, env: Env) {
+  const slug = await generateHashId(Buffer.from(longUrl).buffer);
+
+  const exists = await (env.DB.prepare("SELECT slug FROM links WHERE slug = ?")
+    .bind(slug)
+    .first() as Promise<{ slug: string } | null>);
+
+  if (!exists) {
+    await env.DB.prepare("INSERT INTO links (slug, url) VALUES (?, ?)")
+      .bind(slug, longUrl)
+      .run();
+  }
+
+  return `${url.origin}/short/${slug}`;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    if (url.pathname === "/api/upload") {
-      return handleUpload(request, env);
-    }
+    if (url.pathname === "/api/upload") return handleUpload(request, env);
 
     if (url.pathname.startsWith("/api/media/")) {
       const key = decodeURIComponent(url.pathname.slice("/api/media/".length));
@@ -89,14 +115,10 @@ export default {
     }
 
     if (url.pathname === "/api/shorten" && request.method === "POST") {
-      // @ts-expect-error force
-      const { longUrl } = await request.json();
-      const slug = crypto.randomUUID().slice(0, 8);
-      await env.DB.prepare("INSERT INTO links (slug, url) VALUES (?, ?)")
-        .bind(slug, longUrl)
-        .run();
+      const url = new URL(request.url);
+      const { longUrl } = await request.json<{ longUrl: string }>();
       return new Response(
-        JSON.stringify({ shortUrl: `${url.origin}/short/${slug}` }),
+        JSON.stringify({ shortUrl: await shorteningLink(longUrl, url, env) }),
         {
           headers: { "Content-Type": "application/json" },
         },

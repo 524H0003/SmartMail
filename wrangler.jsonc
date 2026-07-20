@@ -19,4 +19,8 @@
       "database_name": "smartmail-links",
     },
   ],
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+  },
 }

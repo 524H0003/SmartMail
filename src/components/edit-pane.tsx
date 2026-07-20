@@ -6,12 +6,12 @@ import {
   formatHTML,
   getSavedValues,
   minifyHTML,
-  uploadMedia,
 } from "@/lib/utils";
-import { Eye, Share, Upload } from "lucide-react";
+import { Eye, Share } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router";
 
+import { MediaUploadButton } from "./media-upload-button";
 import { TiptapEditor } from "./tiptap-editor";
 import {
   AlertDialog,
@@ -50,7 +50,6 @@ export default function EditPane({
   const [mailHtml, setMailHtml] = useState(""),
     [placeholders, setPlaceholders] = useState<PlaceholderItem[]>([]),
     [htmlCode, setHtmlCode] = useState(""),
-    [apiToken, setApiToken] = useState(""),
     { pathname } = useLocation(),
     [isOpenAlert, setOpenAlert] = useState(false),
     { toggleSidebar } = useSidebar();
@@ -80,19 +79,6 @@ export default function EditPane({
     [placeholders],
   );
 
-  const handleMediaUpload = useCallback(
-    async (i: number, file: File) => {
-      try {
-        const publicUrl = await uploadMedia(file);
-        handleInputChange(i, publicUrl);
-      } catch (error) {
-        console.error("Media upload failed:", error);
-        alert("Failed to upload media file");
-      }
-    },
-    [handleInputChange],
-  );
-
   const fields = useMemo(
     () =>
       placeholders.map((item, i) => {
@@ -106,13 +92,8 @@ export default function EditPane({
             handleInputChange(i, e.target.value),
         };
 
-        const id = `media-file-input-${i}`;
-
         return (
-          <Field
-            className={`col-span-${item.colSpan} min-w-0 justify-between`}
-            key={i}
-          >
+          <Field className={`col-span-${item.colSpan} min-w-0`} key={i}>
             <FieldLabel htmlFor={"input-" + i}>{item.fieldName}</FieldLabel>
             {item.type === "single" && <Input {...commonProps} />}
             {item.type === "multi" && (
@@ -127,21 +108,11 @@ export default function EditPane({
             {item.type === "media" && (
               <ButtonGroup>
                 <Input {...commonProps} />
-                <Button asChild variant="outline">
-                  <label htmlFor={id}>
-                    <input
-                      id={id}
-                      type="file"
-                      accept="image/*,video/*,audio/*"
-                      className="hidden"
-                      onChange={(e) =>
-                        e.target.files?.[0] &&
-                        handleMediaUpload(i, e.target.files[0])
-                      }
-                    />
-                    <Upload className="size-4" />
-                  </label>
-                </Button>
+
+                <MediaUploadButton
+                  i={i}
+                  handleInputChange={handleInputChange}
+                />
               </ButtonGroup>
             )}
           </Field>
@@ -185,19 +156,9 @@ export default function EditPane({
       </SidebarHeader>
       <CardContent className="overflow-y-auto">
         <FieldGroup className="grid gap-4">
-          <Field className="col-span-12 justify-between">
-            <FieldLabel htmlFor="apiToken">Shlink API Token</FieldLabel>
-            <Input
-              id="apiToken"
-              type="password"
-              value={apiToken}
-              onChange={(e) => setApiToken(e.target.value)}
-              placeholder="Nhập API Token của Shlink"
-            />
-          </Field>
           {fields}
           {editHtml && (
-            <Field className="col-span-12 min-w-0 justify-between">
+            <Field className="col-span-12 min-w-0">
               <FieldLabel htmlFor="editHtml">Mã html</FieldLabel>
               <Textarea
                 wrap="off"
@@ -241,7 +202,6 @@ export default function EditPane({
             copyShareUrl({
               placeholders,
               html: pathname.split("/")[2] === "" ? htmlCode : undefined,
-              apiToken,
             })
           }
         >
