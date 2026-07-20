@@ -7,10 +7,11 @@ import {
   getSavedValues,
   minifyHTML,
 } from "@/lib/utils";
-import { Eye, Share } from "lucide-react";
+import { ArrowLeft, Code, Eye, Share } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router";
 
+import { HtmlCodeEditor } from "./html-code-editor";
 import { MediaUploadButton } from "./media-upload-button";
 import { TiptapEditor } from "./tiptap-editor";
 import {
@@ -50,6 +51,7 @@ export default function EditPane({
   const [mailHtml, setMailHtml] = useState(""),
     [placeholders, setPlaceholders] = useState<PlaceholderItem[]>([]),
     [htmlCode, setHtmlCode] = useState(""),
+    [isCodeMode, setIsCodeMode] = useState(false),
     { pathname } = useLocation(),
     [isOpenAlert, setOpenAlert] = useState(false),
     { toggleSidebar } = useSidebar();
@@ -147,28 +149,41 @@ export default function EditPane({
     <Sidebar>
       <SidebarHeader className="flex flex-row items-center justify-between">
         <h1 className="text-lg font-semibold">Chỉnh sửa nội dung</h1>
-        <SidebarMenuButton asChild>
-          <Button className="w-fit md:hidden" onClick={toggleSidebar}>
-            <Eye className="mr-2 size-4" />
-            Xem trước
-          </Button>
-        </SidebarMenuButton>
+        <div className="flex items-center gap-2">
+          {editHtml &&
+            (!isCodeMode ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsCodeMode(true)}
+              >
+                <Code className="mr-2 size-4" />
+                Sửa HTML
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsCodeMode(false)}
+              >
+                <ArrowLeft className="mr-2 size-4" />
+                Quay lại
+              </Button>
+            ))}
+          <SidebarMenuButton asChild>
+            <Button className="w-fit md:hidden" onClick={toggleSidebar}>
+              <Eye className="mr-2 size-4" />
+              Xem trước
+            </Button>
+          </SidebarMenuButton>
+        </div>
       </SidebarHeader>
-      <CardContent className="overflow-y-auto">
-        <FieldGroup className="grid gap-4">
-          {fields}
-          {editHtml && (
-            <Field className="col-span-12 min-w-0">
-              <FieldLabel htmlFor="editHtml">Mã html</FieldLabel>
-              <Textarea
-                wrap="off"
-                value={htmlCode}
-                onChange={(e) => setHtmlCode(e.target.value)}
-                className="max-h-64"
-              />
-            </Field>
-          )}
-        </FieldGroup>
+      <CardContent className="overflow-y-auto flex-1">
+        {isCodeMode ? (
+          <HtmlCodeEditor htmlCode={htmlCode} onHtmlCodeChange={setHtmlCode} />
+        ) : (
+          <FieldGroup className="grid gap-4">{fields}</FieldGroup>
+        )}
       </CardContent>
       <SidebarFooter className="flex flex-row">
         <AlertDialog open={isOpenAlert} onOpenChange={setOpenAlert}>

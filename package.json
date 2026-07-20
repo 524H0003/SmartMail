@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@fontsource-variable/figtree": "^5.2.10",
+    "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tiptap/extension-text-align": "^3.28.0",
     "@tiptap/pm": "^3.28.0",
