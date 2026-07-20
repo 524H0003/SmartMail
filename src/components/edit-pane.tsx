@@ -6,12 +6,13 @@ import {
   formatHTML,
   getSavedValues,
   minifyHTML,
-  uploadMedia,
 } from "@/lib/utils";
-import { Eye, Share, Upload } from "lucide-react";
+import { ArrowLeft, Code, Eye, Home, Share } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 
+import { HtmlCodeEditor } from "./html-code-editor";
+import { MediaUploadButton } from "./media-upload-button";
 import { TiptapEditor } from "./tiptap-editor";
 import {
   AlertDialog,
@@ -47,10 +48,11 @@ export default function EditPane({
   editHtml,
   mailTemplate,
 }: EditPaneProps) {
+  const navigate = useNavigate();
   const [mailHtml, setMailHtml] = useState(""),
     [placeholders, setPlaceholders] = useState<PlaceholderItem[]>([]),
     [htmlCode, setHtmlCode] = useState(""),
-    [apiToken, setApiToken] = useState(""),
+    [isCodeMode, setIsCodeMode] = useState(false),
     { pathname } = useLocation(),
     [isOpenAlert, setOpenAlert] = useState(false),
     { toggleSidebar } = useSidebar();
@@ -67,7 +69,7 @@ export default function EditPane({
   }, []);
 
   const copyToClipboard = async () => {
-    await copyMailToClipboard(mailHtml, apiToken);
+    await copyMailToClipboard(mailHtml);
     setOpenAlert(true);
   };
 
@@ -78,19 +80,6 @@ export default function EditPane({
       setPlaceholders(output);
     },
     [placeholders],
-  );
-
-  const handleMediaUpload = useCallback(
-    async (i: number, file: File) => {
-      try {
-        const publicUrl = await uploadMedia(file);
-        handleInputChange(i, publicUrl);
-      } catch (error) {
-        console.error("Media upload failed:", error);
-        alert("Failed to upload media file");
-      }
-    },
-    [handleInputChange],
   );
 
   const fields = useMemo(
@@ -106,13 +95,8 @@ export default function EditPane({
             handleInputChange(i, e.target.value),
         };
 
-        const id = `media-file-input-${i}`;
-
         return (
-          <Field
-            className={`col-span-${item.colSpan} min-w-0 justify-between`}
-            key={i}
-          >
+          <Field className={`col-span-${item.colSpan} min-w-0`} key={i}>
             <FieldLabel htmlFor={"input-" + i}>{item.fieldName}</FieldLabel>
             {item.type === "single" && <Input {...commonProps} />}
             {item.type === "multi" && (
@@ -127,21 +111,11 @@ export default function EditPane({
             {item.type === "media" && (
               <ButtonGroup>
                 <Input {...commonProps} />
-                <Button asChild variant="outline">
-                  <label htmlFor={id}>
-                    <input
-                      id={id}
-                      type="file"
-                      accept="image/*,video/*,audio/*"
-                      className="hidden"
-                      onChange={(e) =>
-                        e.target.files?.[0] &&
-                        handleMediaUpload(i, e.target.files[0])
-                      }
-                    />
-                    <Upload className="size-4" />
-                  </label>
-                </Button>
+
+                <MediaUploadButton
+                  i={i}
+                  handleInputChange={handleInputChange}
+                />
               </ButtonGroup>
             )}
           </Field>
@@ -175,39 +149,52 @@ export default function EditPane({
   return (
     <Sidebar>
       <SidebarHeader className="flex flex-row items-center justify-between">
-        <h1 className="text-lg font-semibold">Chỉnh sửa nội dung</h1>
-        <SidebarMenuButton asChild>
-          <Button className="w-fit md:hidden" onClick={toggleSidebar}>
-            <Eye className="mr-2 size-4" />
-            Xem trước
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/")}
+            aria-label="Home"
+          >
+            <Home className="size-4" />
           </Button>
-        </SidebarMenuButton>
+          <h1 className="text-lg font-semibold">Chỉnh sửa nội dung</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          {editHtml &&
+            (!isCodeMode ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsCodeMode(true)}
+              >
+                <Code className="mr-2 size-4" />
+                Sửa HTML
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsCodeMode(false)}
+              >
+                <ArrowLeft className="mr-2 size-4" />
+                Quay lại
+              </Button>
+            ))}
+          <SidebarMenuButton asChild>
+            <Button className="w-fit md:hidden" onClick={toggleSidebar}>
+              <Eye className="mr-2 size-4" />
+              Xem trước
+            </Button>
+          </SidebarMenuButton>
+        </div>
       </SidebarHeader>
-      <CardContent className="overflow-y-auto">
-        <FieldGroup className="grid gap-4">
-          <Field className="col-span-12 justify-between">
-            <FieldLabel htmlFor="apiToken">Shlink API Token</FieldLabel>
-            <Input
-              id="apiToken"
-              type="password"
-              value={apiToken}
-              onChange={(e) => setApiToken(e.target.value)}
-              placeholder="Nhập API Token của Shlink"
-            />
-          </Field>
-          {fields}
-          {editHtml && (
-            <Field className="col-span-12 min-w-0 justify-between">
-              <FieldLabel htmlFor="editHtml">Mã html</FieldLabel>
-              <Textarea
-                wrap="off"
-                value={htmlCode}
-                onChange={(e) => setHtmlCode(e.target.value)}
-                className="max-h-64"
-              />
-            </Field>
-          )}
-        </FieldGroup>
+      <CardContent className="overflow-y-auto flex-1">
+        {isCodeMode ? (
+          <HtmlCodeEditor htmlCode={htmlCode} onHtmlCodeChange={setHtmlCode} />
+        ) : (
+          <FieldGroup className="grid gap-4">{fields}</FieldGroup>
+        )}
       </CardContent>
       <SidebarFooter className="flex flex-row">
         <AlertDialog open={isOpenAlert} onOpenChange={setOpenAlert}>
@@ -241,7 +228,6 @@ export default function EditPane({
             copyShareUrl({
               placeholders,
               html: pathname.split("/")[2] === "" ? htmlCode : undefined,
-              apiToken,
             })
           }
         >

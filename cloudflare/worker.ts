@@ -1,29 +1,22 @@
-interface R2PutOptions {
-  httpMetadata?: { contentType?: string };
-}
-
-interface R2ObjectBody {
-  body: ReadableStream;
-  httpMetadata?: { contentType?: string };
-}
-
-interface R2BucketLike {
-  put(
-    key: string,
-    value: ReadableStream | ArrayBuffer | string,
-    options?: R2PutOptions,
-  ): Promise<unknown>;
-  get(key: string): Promise<R2ObjectBody | null>;
-}
+import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
 
 interface Env {
-  R2_BUCKET: R2BucketLike;
+  R2_BUCKET: R2Bucket;
+  DB: D1Database;
   ASSETS: { fetch(request: Request): Promise<Response> };
 }
 
 function toErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   return String(err);
+}
+
+async function generateHashId(content: ArrayBuffer): Promise<string> {
+  const hashBuffer = await crypto.subtle.digest("SHA-256", content);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b: number) => b.toString(16).padStart(2, "0"))
+    .slice(0, 9)
+    .join("");
 }
 
 async function handleUpload(request: Request, env: Env): Promise<Response> {
@@ -42,16 +35,21 @@ async function handleUpload(request: Request, env: Env): Promise<Response> {
     const ext = file.name.includes(".")
       ? file.name.slice(file.name.lastIndexOf("."))
       : "";
-    const key = `${crypto.randomUUID()}${ext}`;
+    const content = await file.arrayBuffer();
+    const key = `${await generateHashId(content)}${ext}`;
 
-    await env.R2_BUCKET.put(key, file.stream(), {
+    await env.R2_BUCKET.put(key, content, {
       httpMetadata: {
         contentType: file.type || "application/octet-stream",
       },
     });
 
     const url = new URL(request.url);
-    const publicUrl = `${url.origin}/api/media/${key}`;
+    const publicUrl = await shorteningLink(
+      `${url.origin}/api/media/${key}`,
+      url,
+      env,
+    );
 
     return new Response(JSON.stringify({ publicUrl }), {
       headers: { "Content-Type": "application/json" },
@@ -85,20 +83,57 @@ async function handleMedia(
   );
   headers.set("Cache-Control", "public, max-age=31536000, immutable");
 
+  // @ts-expect-error force
   return new Response(object.body, { headers });
+}
+
+async function shorteningLink(longUrl: string, url: URL, env: Env) {
+  const slug = await generateHashId(Buffer.from(longUrl).buffer);
+
+  const exists = await (env.DB.prepare("SELECT slug FROM links WHERE slug = ?")
+    .bind(slug)
+    .first() as Promise<{ slug: string } | null>);
+
+  if (!exists) {
+    await env.DB.prepare("INSERT INTO links (slug, url) VALUES (?, ?)")
+      .bind(slug, longUrl)
+      .run();
+  }
+
+  return `${url.origin}/short/${slug}`;
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    if (url.pathname === "/api/upload") {
-      return handleUpload(request, env);
-    }
+    if (url.pathname === "/api/upload") return handleUpload(request, env);
 
     if (url.pathname.startsWith("/api/media/")) {
       const key = decodeURIComponent(url.pathname.slice("/api/media/".length));
       return handleMedia(request, env, key);
+    }
+
+    if (url.pathname === "/api/shorten" && request.method === "POST") {
+      const url = new URL(request.url);
+      const { longUrl } = await request.json<{ longUrl: string }>();
+      return new Response(
+        JSON.stringify({ shortUrl: await shorteningLink(longUrl, url, env) }),
+        {
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    if (url.pathname.startsWith("/short/")) {
+      const slug = url.pathname.slice("/short/".length);
+      const link = await (env.DB.prepare("SELECT url FROM links WHERE slug = ?")
+        .bind(slug)
+        .first() as Promise<{ url: string } | null>);
+      if (link) {
+        return Response.redirect(link.url, 302);
+      }
+      return new Response("Not found", { status: 404 });
     }
 
     // Fall back to the static assets / SPA for everything else.
