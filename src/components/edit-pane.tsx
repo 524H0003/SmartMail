@@ -9,7 +9,7 @@ import {
 } from "@/lib/utils";
 import { ArrowLeft, Code, Eye, Home, Share } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 import { HtmlCodeEditor } from "./html-code-editor";
 import { MediaUploadButton } from "./media-upload-button";
@@ -189,7 +189,7 @@ export default function EditPane({
           </SidebarMenuButton>
         </div>
       </SidebarHeader>
-      <CardContent className="overflow-y-auto flex-1">
+      <CardContent className="flex-1 overflow-y-auto">
         {isCodeMode ? (
           <HtmlCodeEditor htmlCode={htmlCode} onHtmlCodeChange={setHtmlCode} />
         ) : (

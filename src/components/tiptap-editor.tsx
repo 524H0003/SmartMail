@@ -1,6 +1,6 @@
+import TextAlign from "@tiptap/extension-text-align";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import TextAlign from "@tiptap/extension-text-align";
 
 import { TiptapToolbar } from "./tiptap-toolbar";
 
