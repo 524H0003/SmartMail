@@ -41,48 +41,71 @@ const AI_PROMPT_TEMPLATE = (request: string) => /* tx */ `
        Unsplash Source). Use high-quality, contextually relevant REAL images
        from stable CDNs or descriptive stock photo URLs.**
 
-  3. Custom Variable Syntax (Mandatory): Every dynamic, editable, or changeable element MUST use this EXACT format: %={FieldName|Type|DefaultValue|ColSpan}. No other placeholders are allowed.
+  3. Custom Variable Syntax (Mandatory): Every dynamic, editable, or changeable
+     element MUST use this EXACT format:
+     %={FieldName|Type|DefaultValue|ColSpan}. No other placeholders are allowed.
      - FieldName: Vietnamese with spaces (e.g., "Tiêu đề chính").
      - Type:
        - "1" for standard text input (single-line text).
-       - "2" for URLs/Paths (Crucial for post-processing, button links, and paths).
-       - "3" for rich text editing with formatting options (will use Tiptap editor).
+       - "2" for URLs/Paths (Crucial for post-processing, button links, and
+         paths).
+       - "3" for rich text editing with formatting options (will use Tiptap
+         editor).
        - "4" for media file URLs (images, videos, audio files).
        - Empty (blank) for textarea/multiline text.
      - DefaultValue: The initial content, hex color, or image URL.
      - ColSpan: A number from 1 to 12.
-     - REQUIREMENT: You MUST use this syntax for every single text string, image source, button link, color value, or block of content that a user might want to change later.
+     - REQUIREMENT: You MUST use this syntax for every single text string, image
+       source, button link, color value, or block of content that a user might
+       want to change later.
 
   Examples:
-  - Standard input: <input class="field-single" type="text" value="%={Họ tên|1|Nguyễn Văn A|6}" />
-  - URL/Link: <a href="%={Đường dẫn nút|2|https://example.com|12}" style="...">Nút</a>
-  - Rich text: <div class="field-text">%={Nội dung chi tiết|3|<p>Nội dung...</p>|12}</div>
+
+  - Standard input: <input class="field-single" type="text"
+    value="%={Họ tên|1|Nguyễn Văn A|6}" />
+  - URL/Link:
+    <a href="%={Đường dẫn nút|2|https://example.com|12}" style="...">Nút</a>
+  - Rich text: <div class="field-text">%={Nội dung chi tiết|3|<p>Nội
+    dung...</p>|12}</div>
   - Media: <img src="%={Ảnh bìa|4|https://real-image-url.com/img.jpg|12}" />
-  - Textarea: <textarea class="field-multi">%={Ghi chú|_|Nội dung ghi chú|12</textarea>
-  - Button fields: <button href="%={Link nút|2|https://example.com|12}">%={Tên nút|1|Gửi ngay|6</button>
-  - Image fields: <img src="%={Ảnh chính|4|https://real-image.com/banner.jpg|12}" />
+  - Textarea: <textarea class="field-multi">%={Ghi chú|_|Nội dung ghi
+    chú|12</textarea>
+  - Button fields: <button href="%={Link nút|2|https://example.com|12}"> %={Tên
+    nút|1|Gửi ngay|6</button>
+  - Image fields:
+    <img src="%={Ảnh chính|4|https://real-image.com/banner.jpg|12}" />
 
   Design Requirements:
 
-  - **Commenting for AI Refinement (Crucial):** Include descriptive HTML comments throughout the code to help an AI identify structural sections and variable locations. 
-    Example: '<!-- Section: Header -->', '<!-- Variable: Main Title -->', '<!-- End Section: Footer -->'. 
-    Always wrap the custom variable syntax with comments to make it easy to locate, e.g., '<!-- Variable: Button Link --> <a href="%={...}">...</a> <!-- End Variable -->'.
-  - **Color Scheme:** ALWAYS follow the color palette provided in the attached reference image.
-  - **Fixed Colors / Prevent Dark Mode Override (Crucial):** The template must maintain fixed light-themed colors (based on the reference image) and not be affected or inverted by device/email client auto-dark modes (e.g., Gmail, Apple Mail, Outlook). To prevent dark mode color inversion:
+  - **Commenting for AI Refinement (Crucial):** Include descriptive HTML
+    comments throughout the code to help an AI identify structural sections and
+    variable locations. Example: '<!-- Section: Header -->',
+    '<!-- Variable: Main Title -->', '<!-- End Section: Footer -->'. Always wrap
+    the custom variable syntax with comments to make it easy to locate, e.g.,
+    '<!-- Variable: Button Link --> <a href="%={...}">...</a>
+    <!-- End Variable -->'.
+  - **Color Scheme:** ALWAYS follow the color palette provided in the attached
+    reference image.
+  - **Fixed Colors / Prevent Dark Mode Override (Crucial):** The template must
+    maintain fixed light-themed colors (based on the reference image) and not be
+    affected or inverted by device/email client auto-dark modes (e.g., Gmail,
+    Apple Mail, Outlook). To prevent dark mode color inversion:
     1. Add the following meta tags inside the '<head>' of the HTML:
        '<meta name="color-scheme" content="light">'
        '<meta name="supported-color-schemes" content="light">'
-    2. Add the following style block to the head or container:
-       '<style>
-         :root { color-scheme: light; supported-color-schemes: light; }
-         @media (prefers-color-scheme: dark) {
-           body, table, td, p, span, a, h1, h2, h3 { color: #333333 !important; }
-         }
-       </style>'
-    3. Explicitly define solid, non-transparent background colors on every table, row, and table cell.
+    2. Add the following style block to the head or container: '<style> :root {
+       color-scheme: light; supported-color-schemes: light; } @media
+       (prefers-color-scheme: dark) { body, table, td, p, span, a, h1, h2, h3 {
+       color: #333333 !important; } } </style>'
+    3. Explicitly define solid, non-transparent background colors on every
+       table, row, and table cell.
   - No <title /> tag.
   - Modern, clean, professional aesthetic.
-  - **Email Brief/Preview Text:** Include a hidden or subtly styled "preheader" or "preview text" at the very top of the HTML (before the header). Use the custom variable syntax for the content: <span style="display:none; max-height:0px; overflow:hidden;">%={Email Brief|1|Xem nội dung tại đây|12}</span>.
+  - **Email Brief/Preview Text:** Include a hidden or subtly styled "preheader"
+    or "preview text" at the very top of the HTML (before the header). Use the
+    custom variable syntax for the content:
+    <span style="display:none; max-height:0px;
+    overflow:hidden;">%={Email Brief|1|Xem nội dung tại đây|12}</span>.
   - **For every button, provide two separate editable fields:**
     1. Text content (Type 1) - What users see on the button
     2. URL (Type 2) - The link destination (http:// or https://)
